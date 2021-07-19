@@ -17,10 +17,14 @@
   <ItemGroup>
     <ClCompile Include="BMTCommand_doIt.cpp" />
     <ClCompile Include="BMTCommand_newSyntax.cpp" />
+    <ClCompile Include="BMTMath.cpp" />
+    <ClCompile Include="Operators.cpp" />
     <ClCompile Include="pluginMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BMTCommand.h" />
+    <ClInclude Include="BMTMath.h" />
+    <ClInclude Include="Operators.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>
