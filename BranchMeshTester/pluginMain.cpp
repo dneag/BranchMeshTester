@@ -6,9 +6,16 @@
 // Author: Maya Plug-in Wizard 2.0
 //
 
+/*
+edited from the Maya Plug-in Wizard 2.0 template
+defines methods called when loading and unloading the BranchMeshTester plugin
+*/
+
 #include <maya/MFnPlugin.h>
 
-MStatus initializePlugin( MObject obj )
+#include "BMTCommand.h"
+
+MStatus initializePlugin(MObject obj)
 //
 //	Description:
 //		this method is called when the plug-in is loaded into Maya.  It 
@@ -18,17 +25,17 @@ MStatus initializePlugin( MObject obj )
 //	Arguments:
 //		obj - a handle to the plug-in object (use MFnPlugin to access it)
 //
-{ 
+{
 	MStatus   status;
-	MFnPlugin plugin( obj, "", "2018", "Any");
+	MFnPlugin plugin(obj, "", "2018", "Any");
 
-	// Add plug-in feature registration here
-	//
+	status = plugin.registerCommand("makeBranchMeshes", BMTCommand::creator, BMTCommand::newSyntax);
+	CHECK_MSTATUS_AND_RETURN_IT(status);
 
 	return status;
 }
 
-MStatus uninitializePlugin( MObject obj )
+MStatus uninitializePlugin(MObject obj)
 //
 //	Description:
 //		this method is called when the plug-in is unloaded from Maya. It 
@@ -39,10 +46,10 @@ MStatus uninitializePlugin( MObject obj )
 //
 {
 	MStatus   status;
-	MFnPlugin plugin( obj );
+	MFnPlugin plugin(obj);
 
-	// Add plug-in feature deregistration here
-	//
+	status = plugin.deregisterCommand("makeBranchMesh");
+	CHECK_MSTATUS_AND_RETURN_IT(status);
 
 	return status;
 }
