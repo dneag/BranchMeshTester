@@ -1,3 +1,9 @@
+/*
+	BMTMath.h
+
+	Mathematical classes and functions supporting BranchMesh
+*/
+
 #pragma once
 #ifndef BMTMath_h
 #define BMTMath_h
@@ -16,6 +22,9 @@ namespace MM {
 	const double cosPID2 = std::cos(PID2);
 }
 
+// polar angles.  pol is for polar, azi is for azimuth
+// within Maya world space, a pol of 0 radians points down the positive x-axis.  As it increases it rotates clockwise when viewing from above.
+//    An azi of 0. points up the positive y-axis.  As it increases it rotates towards its polar counterpart
 struct PolAngles
 {
 	double pol = 0.;
@@ -50,6 +59,7 @@ struct Point
 	}
 };
 
+// represents a cartesian vector
 struct CVect
 {
 	double x = 0.;
@@ -101,29 +111,31 @@ struct CVect
 	}
 };
 
+// uses a 3x3 matrix to represent the orientation of a 3D space
+// creates vectors relative to the orientation using polar coordinates
 class Space
 {
 	double aziMatrix[3][3];
-	double iAziMatrix[3][3];
-	double matrixFromVectors[3][3];
 	double polarOrientation = 0.;
 	double aziOrientation = 0.;
 	double u[3];
 
 public:
 
-	Space() {}
-
 	// create an object oriented to the angles parameter
 	Space(PolAngles angles);
 
+	// takes polar coordinates as arguments and returns a CVect relative to the current orientation
 	CVect makeVector(double polar, double azimuth, double distance) const;
 };
 
+// polar angles of the CVect passed
 PolAngles findVectorAngles(const CVect &v);
 
+// distance between p and q
 double distance(const Point &p, const Point &q);
 
+// angle (in radians) between p and q
 double findAngBetween(const CVect &p, const CVect &q);
 
 #endif /* BMTMath_h */
