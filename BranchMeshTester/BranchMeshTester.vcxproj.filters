@@ -26,5 +26,16 @@
     <ClCompile Include="pluginMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BMTCommand_newSyntax.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BMTCommand_doIt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BMTCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
