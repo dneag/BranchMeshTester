@@ -16,6 +16,7 @@ BranchMesh.h
 
 class BranchMesh
 {
+	int sides;
 	double initialRadius;
 	std::vector< Point > verts;
 	std::vector<int> faceCounts;
@@ -24,8 +25,6 @@ class BranchMesh
 	std::vector<int> faceConnects;
 
 public:
-
-	BranchMesh() {}
 
 	BranchMesh(Segment *firstseg, const int sides);
 
@@ -73,7 +72,7 @@ public:
 
 	void addCapFaceConnectsAndCounts(const int sides);
 
-	void calculateUVs(int sides);
+	void calculateUVs();
 };
 
 #endif /* BranchMesh_h */

@@ -336,7 +336,7 @@ void BranchMesh::addCapFaceConnectsAndCounts(const int sides) {
 	}
 }
 
-void BranchMesh::calculateUVs(int sides)
+void BranchMesh::calculateUVs()
 {
 	double wedgeAngle = MM::PIM2 / sides;
 	double radSqu = initialRadius*initialRadius;
@@ -349,24 +349,9 @@ void BranchMesh::calculateUVs(int sides)
 
 	double uvFaceWidth = 1. / (numTextureColumns * faces);
 	double uvScaler = uvFaceWidth / baseFaceWidth;
-	//std::vector< std::vector<int> > vertCoords;
-
-	//        for (int i=0; i<sides; i++) {
-	//            std::vector<int> vertRow;
-	//            vertCoords.push_back(vertRow); }
 
 	int sideInd = 0;
 	int cnctInd = 0;
-
-	//        for (int i=0; i<faceCounts.size(); i++)
-	//        {
-	//
-	//            vertCoords[sideInd].push_back(faceConnects[cnctInd]);
-	//            cnctInd += faceCounts[i];
-	//            
-	//            sideInd++;
-	//            if (sideInd == sides) { sideInd = 0; }
-	//        }
 
 	sideInd = 0;
 	cnctInd = 0;
@@ -434,6 +419,5 @@ void BranchMesh::calculateUVs(int sides)
 			indexDiffOfVertBelow = sides * (faceCounts[(i + 1) - sides]);
 			ring++;
 		}
-
 	}
 }
