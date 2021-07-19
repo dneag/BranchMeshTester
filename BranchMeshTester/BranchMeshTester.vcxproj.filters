@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{efb72cbe-546d-4d54-8e8b-12fdd157786c}</UniqueIdentifier>
+      <Extensions>cpp</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c9d65915-1f9f-4602-b8bd-bfc3fdcaf0ab}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Miscellaneous Files">
+      <UniqueIdentifier>{3c587069-5079-43b3-8858-927ee0d9c1bb}</UniqueIdentifier>
+      <Extensions>txt</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt">
+      <Filter>Miscellaneous Files</Filter>
+    </Text>
+    <Text Include="Options.txt">
+      <Filter>Miscellaneous Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pluginMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
