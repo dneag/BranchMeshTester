@@ -48,7 +48,7 @@ MStatus uninitializePlugin(MObject obj)
 	MStatus   status;
 	MFnPlugin plugin(obj);
 
-	status = plugin.deregisterCommand("makeBranchMesh");
+	status = plugin.deregisterCommand("makeBranchMeshes");
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 
 	return status;
