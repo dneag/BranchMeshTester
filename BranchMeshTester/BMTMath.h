@@ -122,7 +122,7 @@ class Space
 
 public:
 
-	// create an object oriented to the angles parameter
+	// create a Space oriented to the angles parameter
 	Space(PolAngles angles);
 
 	// takes polar coordinates as arguments and returns a CVect relative to the current orientation

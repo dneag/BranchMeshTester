@@ -26,6 +26,8 @@
 
 namespace {
 
+	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg);
+
 	void sendMeshesToMaya(std::vector<BranchMesh*> treeMesh);
 }
 
@@ -36,26 +38,11 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 	MArgDatabase argData(syntax(), argList, &status);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 
-	std::vector<BranchMesh*> treeMesh;
-
 	// there will always be a root segment regardless of user input
 	Meristem *rootMeri = new Meristem(.01, 8);
-	Segment *rootSeg = new Segment(CVect(0., .3, 0.), Point(0., -.3, 0.), .05, rootMeri);
+	Segment *rootSeg = new Segment(CVect(0., .3, 0.), Point(0., -.3, 0.), .02, rootMeri);
 
-	std::queue<Segment*> firstSegsOfNewBMeshes;
-	firstSegsOfNewBMeshes.push(rootSeg);
-
-	// Each iteration declares a BranchMesh and the go() method completes it.  
-	// The go() method also finds any segments that mark the beginning of what will be a new BranchMesh, and adds them to the queue
-	while (!firstSegsOfNewBMeshes.empty()) {
-
-		const int orderSides = firstSegsOfNewBMeshes.front()->getMeri()->sides;
-		BranchMesh *bMesh = new BranchMesh(firstSegsOfNewBMeshes.front(), orderSides);
-		treeMesh.push_back(bMesh);
-		std::vector<double> initialPreadjusts(orderSides, 0.);
-		bMesh->go(firstSegsOfNewBMeshes.front(), orderSides, initialPreadjusts, firstSegsOfNewBMeshes);
-		firstSegsOfNewBMeshes.pop();
-	}
+	std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
 
 	sendMeshesToMaya(treeMesh);
 
@@ -64,9 +51,32 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 
 namespace {
 
+	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg) {
+
+		// treeMesh is the collection of BranchMeshes
+		std::vector<BranchMesh*> treeMesh;
+
+		std::queue<Segment*> firstSegsOfNewBMeshes;
+		firstSegsOfNewBMeshes.push(rootSeg);
+
+		// Each iteration declares a BranchMesh and the go() method completes it.  
+		// The go() method also finds any segments that mark the beginning of what will be a new BranchMesh, and adds them to the queue
+		while (!firstSegsOfNewBMeshes.empty()) {
+
+			const int orderSides = firstSegsOfNewBMeshes.front()->getMeri()->sides;
+			BranchMesh *bMesh = new BranchMesh(firstSegsOfNewBMeshes.front(), orderSides);
+			treeMesh.push_back(bMesh);
+			std::vector<double> initialPreadjusts(orderSides, 0.);
+			bMesh->go(firstSegsOfNewBMeshes.front(), orderSides, initialPreadjusts, firstSegsOfNewBMeshes);
+			firstSegsOfNewBMeshes.pop();
+		}
+
+		return treeMesh;
+	}
+
 	void sendMeshesToMaya(std::vector<BranchMesh*> treeMesh) {
 
-		// dagFn.create("transform", groupName) will create a Maya group that we can assign each BranchMesh to
+		// MFnDagNode's create() will create a Maya group that we can assign each BranchMesh to
 		std::string groupName_str = "BranchMesh Tree";
 		char groupName_c[18];
 		strcpy(groupName_c, groupName_str.c_str());
