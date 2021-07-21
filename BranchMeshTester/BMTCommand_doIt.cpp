@@ -38,6 +38,25 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 
 	std::vector<BranchMesh*> treeMesh;
 
+	// there will always be a root segment regardless of user input
+	Meristem *rootMeri = new Meristem(.01, 8);
+	Segment *rootSeg = new Segment(CVect(0., .3, 0.), Point(0., -.3, 0.), .05, rootMeri);
+
+	std::queue<Segment*> firstSegsOfNewBMeshes;
+	firstSegsOfNewBMeshes.push(rootSeg);
+
+	// Each iteration declares a BranchMesh and the go() method completes it.  
+	// The go() method also finds any segments that mark the beginning of what will be a new BranchMesh, and adds them to the queue
+	while (!firstSegsOfNewBMeshes.empty()) {
+
+		const int orderSides = firstSegsOfNewBMeshes.front()->getMeri()->sides;
+		BranchMesh *bMesh = new BranchMesh(firstSegsOfNewBMeshes.front(), orderSides);
+		treeMesh.push_back(bMesh);
+		std::vector<double> initialPreadjusts(orderSides, 0.);
+		bMesh->go(firstSegsOfNewBMeshes.front(), orderSides, initialPreadjusts, firstSegsOfNewBMeshes);
+		firstSegsOfNewBMeshes.pop();
+	}
+
 	sendMeshesToMaya(treeMesh);
 
 	return MS::kSuccess;
@@ -57,9 +76,6 @@ namespace {
 
 		for (auto bMesh : treeMesh)
 		{
-			//std::cout<<"making bmesh"<<std::endl;
-			//std::cout<<"faces: "<<allBMeshes[j]->numFaces()<<std::endl;
-			//std::cout<<"verts: "<<allBMeshes[j]->numVerts()<<std::endl;
 			MFloatPointArray fpaVertices;
 			for (int i = 0; i < bMesh->numVerts(); i++)
 			{
