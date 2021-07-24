@@ -93,7 +93,27 @@ class GUI():
         parentBranch.childBranches.append(Branch(rootSegNum, parentBranch))
         parentBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
         
-            
+        # for cb in parentBranch.childBranches:
+        
+            # print cb.rootSegNum
+        
+        # print " "
+        
+    def removeBranch(self, parentBranch, rootSegNum, *_):
+    
+        # removes the branch rooted at the segment corresponding to rootSegNum
+        
+        for i, cb in enumerate(parentBranch.childBranches):
+            if cb.rootSegNum == rootSegNum:
+                del parentBranch.childBranches[i]
+                break
+                
+        # for cb in parentBranch.childBranches:
+        
+            # print cb.rootSegNum
+        
+        # print " "
+        
 class Branch:
 
     # represents a chain of connected segments
@@ -116,7 +136,7 @@ class SegmentControls:
         self.distance_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
         self.radius_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
         self.separator1 = cmds.separator(style="none")
-        self.checkBox = cmds.checkBox(l="", onc=partial(theGUI.startNewBranch, homeBranch, segmentNumber), ofc=partial(theGUI.startNewBranch, homeBranch, segmentNumber))
+        self.checkBox = cmds.checkBox(l="", onc=partial(theGUI.startNewBranch, homeBranch, segmentNumber), ofc=partial(theGUI.removeBranch, homeBranch, segmentNumber))
         self.offSet_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
         self.toBranchButton = cmds.button()
         
