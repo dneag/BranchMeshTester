@@ -25,16 +25,16 @@ namespace MM {
 // polar angles.  pol is for polar, azi is for azimuth
 // within Maya world space, a pol of 0 radians points down the positive x-axis.  As it increases it rotates clockwise when viewing from above.
 //    An azi of 0. points up the positive y-axis.  As it increases it rotates towards its polar counterpart
-struct PolAngles
+struct SphAngles
 {
 	double pol = 0.;
 	double azi = 0.;
 
-	PolAngles() {}
+	SphAngles() {}
 
-	PolAngles(double POL, double AZI) : pol(POL), azi(AZI) {}
+	SphAngles(double POL, double AZI) : pol(POL), azi(AZI) {}
 
-	void operator=(const PolAngles &rhs) {
+	void operator=(const SphAngles &rhs) {
 
 		pol = rhs.pol;
 		azi = rhs.azi;
@@ -112,7 +112,7 @@ struct CVect
 };
 
 // uses a 3x3 matrix to represent the orientation of a 3D space
-// creates vectors relative to the orientation using polar coordinates
+// creates vectors relative to the orientation using spherical coordinates
 class Space
 {
 	double aziMatrix[3][3];
@@ -123,14 +123,14 @@ class Space
 public:
 
 	// create a Space oriented to the angles parameter
-	Space(PolAngles angles);
+	Space(SphAngles angles);
 
-	// takes polar coordinates as arguments and returns a CVect relative to the current orientation
+	// takes spherical coordinates as arguments and returns a CVect relative to the current orientation
 	CVect makeVector(double polar, double azimuth, double distance) const;
 };
 
 // polar angles of the CVect passed
-PolAngles findVectorAngles(const CVect &v);
+SphAngles findVectorAngles(const CVect &v);
 
 // distance between p and q
 double distance(const Point &p, const Point &q);

@@ -4,7 +4,7 @@
 
 #include "BMTMath.h"
 
-Space::Space(PolAngles angles) {
+Space::Space(SphAngles angles) {
 
 	angles.azi *= -1.;
 
@@ -60,14 +60,14 @@ CVect Space::makeVector(double polar, double azimuth, double distance) const
 	return CVect(vector);
 }
 
-PolAngles findVectorAngles(const CVect &v)
+SphAngles findVectorAngles(const CVect &v)
 {
 	double dist = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 
 	if (dist == 0.)
 		std::cout << "WARNING: DISTANCE IS ZERO (in findVectorAngles())" << std::endl;
 
-	PolAngles angles;
+	SphAngles angles;
 
 	if ((v.x > 0.) && (v.z > 0.))
 	{
