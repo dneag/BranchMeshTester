@@ -8,6 +8,8 @@ class GUI():
 
     def __init__(self):
         
+        # Creates and displays the window and establishes all interface elements
+        
         self.winName = "bmtWindow"
         self.dockName = "bmtDock"
     
@@ -84,35 +86,6 @@ class GUI():
         cmds.setParent(self.segmentRowCol_LO)
         segmentNumber = len(currentBranch.segmentControls) + 1
         currentBranch.segmentControls.append(SegmentControls(self, currentBranch, segmentNumber))
-    
-    def startNewBranch(self, parentBranch, rootSegNum, *_):
-    
-        # creates a new Branch and appends it to the parentBranch's list of childBranches
-        # childBranches is always in ascending order by the Branch's rootSegNum
-        
-        parentBranch.childBranches.append(Branch(rootSegNum, parentBranch))
-        parentBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
-        
-        # for cb in parentBranch.childBranches:
-        
-            # print cb.rootSegNum
-        
-        # print " "
-        
-    def removeBranch(self, parentBranch, rootSegNum, *_):
-    
-        # removes the branch rooted at the segment corresponding to rootSegNum
-        
-        for i, cb in enumerate(parentBranch.childBranches):
-            if cb.rootSegNum == rootSegNum:
-                del parentBranch.childBranches[i]
-                break
-                
-        # for cb in parentBranch.childBranches:
-        
-            # print cb.rootSegNum
-        
-        # print " "
         
 class Branch:
 
@@ -131,16 +104,54 @@ class SegmentControls:
     
     def __init__(self, theGUI, homeBranch, segmentNumber):
     
+        self.segmentNumber = segmentNumber
         self.pol_FLD = cmds.intField(v=0, min=0, max=359)
         self.azi_FLD = cmds.intField(v=0, min=0, max=359)
         self.distance_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
         self.radius_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
         self.separator1 = cmds.separator(style="none")
-        self.checkBox = cmds.checkBox(l="", onc=partial(theGUI.startNewBranch, homeBranch, segmentNumber), ofc=partial(theGUI.removeBranch, homeBranch, segmentNumber))
-        self.offSet_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
-        self.toBranchButton = cmds.button()
+        self.checkBox = cmds.checkBox(l="", onc=partial(self.lateralBranch_On, homeBranch), ofc=partial(self.lateralBranch_Off, homeBranch))
+        self.offSet_FLD = cmds.floatField(v=.15, pre=2, min=.01, max=3, en=False)
+        self.toBranchButton = cmds.button(l="->",en=False, bgc=[.4,.4,.4])
         
     
         
+    def lateralBranch_On(self, parentBranch, checkBoxState):
+    
+        # turns on lateral branch controls and creates a new branch
         
+        # enable the offset and toBranch button controls
+        cmds.floatField(self.offSet_FLD, e=True, en=checkBoxState)
+        cmds.button(self.toBranchButton, e=True, en=checkBoxState)
+        
+        # create a new Branch and appends it to the parentBranch's list of childBranches
+        # childBranches is always in ascending order by the Branch's rootSegNum
+        parentBranch.childBranches.append(Branch(self.segmentNumber, parentBranch))
+        parentBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
+        
+        # for cb in parentBranch.childBranches:
+        
+            # print cb.rootSegNum
+        
+        # print " "
+        
+    def lateralBranch_Off(self, parentBranch, checkBoxState):
+    
+        # turns off lateral branch controls and removes the branch located on the segment
+        
+        # disable the offset and toBranch button controls
+        cmds.floatField(self.offSet_FLD, e=True, en=checkBoxState)
+        cmds.button(self.toBranchButton, e=True, en=checkBoxState)
+        
+        # removes the branch rooted at the segment corresponding to rootSegNum
+        for i, cb in enumerate(parentBranch.childBranches):
+            if cb.rootSegNum == self.segmentNumber:
+                del parentBranch.childBranches[i]
+                break
+                
+        # for cb in parentBranch.childBranches:
+        
+            # print cb.rootSegNum
+        
+        # print " "
         
