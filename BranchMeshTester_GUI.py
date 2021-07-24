@@ -11,6 +11,7 @@ class GUI():
         self.winName = "bmtWindow"
         self.dockName = "bmtDock"
     
+        # Make sure the window or dock doesn't exist before creating a new one.  Delete it if it does
         if (cmds.window(self.winName, exists=True)):
             cmds.deleteUI(self.winName)
             print 'deleted existing ' + self.winName
@@ -31,19 +32,9 @@ class GUI():
         self.allBranches.append(Branch(0, None))
         self.makeBranchControls(self.mainColumn_LO, self.allBranches[0])
         
-        cmds.rowColumnLayout(nc=7, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ])
-        cmds.text(l="pol", bgc=[.4,.4,.4], h=20)
-        cmds.text(l="azi", bgc=[.35,.35,.35], h=20)
-        cmds.text(l="dist", bgc=[.4,.4,.4], h=20)
-        cmds.text(l="rad", bgc=[.35,.35,.35], h=20)
-        cmds.separator(style="none")
-        cmds.text(l="Br", bgc=[.4,.4,.4], h=20)
-        cmds.text(l="offset", bgc=[.35,.35,.35], h=20)
-        cmds.separator(style="none")
-        cmds.setParent(self.mainColumn_LO)
+        self.makeSegmentControlLabels(self.mainColumn_LO)
         
         cmds.separator(style="double",h=4,w=300,hr=True)
-        
         
         self.segmentScroll_LO = cmds.scrollLayout(w=300,h=500, bgc=[.2,.2,.2])
         self.segmentRowCol_LO = cmds.rowColumnLayout(nc=8, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ], rs=[1,5])
@@ -74,6 +65,19 @@ class GUI():
         #cmds.button(l="Remove Seg", command=self.deleteSegmentControls)
         cmds.setParent(startingLayout)
         cmds.separator(style="none",h=5)
+    
+    def makeSegmentControlLabels(self, startingLayout):
+    
+        cmds.rowColumnLayout(nc=7, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ])
+        cmds.text(l="pol", bgc=[.4,.4,.4], h=20)
+        cmds.text(l="azi", bgc=[.35,.35,.35], h=20)
+        cmds.text(l="dist", bgc=[.4,.4,.4], h=20)
+        cmds.text(l="rad", bgc=[.35,.35,.35], h=20)
+        cmds.separator(style="none")
+        cmds.text(l="Br", bgc=[.4,.4,.4], h=20)
+        cmds.text(l="offset", bgc=[.35,.35,.35], h=20)
+        cmds.separator(style="none")
+        cmds.setParent(startingLayout)
         
     def makeSegmentControls(self, currentBranch, *_):
         
