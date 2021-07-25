@@ -16,6 +16,9 @@ class GUI():
         
         self.winName = "bmtWindow"
         self.dockName = "bmtDock"
+        
+        # counts are needed for creating unique names for object ui elements
+        self.branchCount = 0
         self.segmentControlsCount = 0
         
         # Make sure the window or dock doesn't exist before creating a new one.  Delete it if it does

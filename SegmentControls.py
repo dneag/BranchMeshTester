@@ -29,7 +29,7 @@ class SegmentControls:
         self.offSet_FLD_Name = "offSet_FLD_" + str(totalSegs)
         self.toBranchButton_Name = "toBranchButton_" + str(totalSegs)
         
-        # UI elements
+        # segment control UI elements
         self.pol_FLD = cmds.intField(self.pol_FLD_Name, v=0, min=0, max=359)
         self.azi_FLD = cmds.intField(self.azi_FLD_Name, v=0, min=0, max=359)
         self.distance_FLD = cmds.floatField(self.distance_FLD_Name, v=.3, pre=2, min=.01, max=3)
@@ -50,6 +50,7 @@ class SegmentControls:
         # create a new Branch and appends it to the parentBranch's list of childBranches
         # childBranches is always in ascending order by the Branch's rootSegNum
         parentBranch.childBranches.append(Branch(self.segmentNumber, parentBranch, parentBranch.theGUI))
+        parentBranch.childBranches[-1].makeSegmentControls()
         parentBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
         
         # for cb in parentBranch.childBranches:
@@ -69,6 +70,7 @@ class SegmentControls:
         # removes the branch rooted at the segment corresponding to rootSegNum
         for i, cb in enumerate(parentBranch.childBranches):
             if cb.rootSegNum == self.segmentNumber:
+                cmds.deleteUI(parentBranch.childBranches[i].segmentRowCol_LO_Name)
                 del parentBranch.childBranches[i]
                 break
                 
