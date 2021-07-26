@@ -22,9 +22,9 @@ class Branch:
         self.segmentControls = []
         self.childBranches = []
         
-        cmds.setParent(theGUI.segmentScroll_LO)
-        self.segmentRowCol_LO_Name = "segmentRowCol_LO_" + str(theGUI.branchCount)
-        self.segmentRowCol_LO = cmds.rowColumnLayout(self.segmentRowCol_LO_Name, nc=8, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ], rs=[1,5], vis=False)
+        cmds.setParent(theGUI.mainColumn_LO)
+        self.segmentScroll_LO_Name = "segmentScroll_LO_" + str(theGUI.branchCount)
+        self.segmentScroll_LO = cmds.scrollLayout(self.segmentScroll_LO_Name, w=300,h=500, bgc=[.2,.2,.2], vis=False)
     
     def collectSegmentInfo(self):
     
@@ -32,13 +32,13 @@ class Branch:
         
         for sc in self.segmentControls:
         
-            if (sc.lateralBranch is not None)
+            if (sc.lateralBranch is not None):
             
                 sc.lateralBranch.collectSegmentInfo()
         
     def activateBranchUI(self):
         
-        cmds.rowColumnLayout(self.segmentRowCol_LO, e=True, vis=True)
+        cmds.scrollLayout(self.segmentScroll_LO, e=True, vis=True)
         branchNumber = self.calculateBranchNumber()
         cmds.text(self.theGUI.branchLabel, e=True, l=branchNumber)
         cmds.button(self.theGUI.addSegButton, e=True, command=self.makeSegmentControls)
@@ -55,31 +55,29 @@ class Branch:
     
         for cb in self.childBranches:
             if (cb.rootSegNum == rootSegNum):
-                cmds.rowColumnLayout(self.segmentRowCol_LO, e=True, vis=False) # hide this branch's layout before turning another on
+                cmds.scrollLayout(self.segmentScroll_LO, e=True, vis=False)# hide this branch's layout before turning another on
                 cb.activateBranchUI()
                 
     def makeSegmentControls(self, *_):
     
-        cmds.setParent(self.segmentRowCol_LO)        
+        cmds.setParent(self.segmentScroll_LO)       
         segmentNumber = len(self.segmentControls) + 1
         self.segmentControls.append(SegmentControls(self, segmentNumber))
     
     def deleteSegmentControls(self, *_):
     
-        cmds.setParent(self.segmentRowCol_LO)
+        cmds.setParent(self.segmentScroll_LO)
 
         if (len(self.segmentControls) > 0):
         
             # del does NOT call the destructor so we will delete the controls here
-            seg = self.segmentControls[-1]
-            cmds.deleteUI(seg.pol_FLD_Name, seg.azi_FLD_Name, seg.distance_FLD_Name, seg.radius_FLD_Name,
-                seg.separator_Name, seg.checkBox_Name, seg.offSet_FLD_Name, seg.toBranchButton_Name)
+            cmds.deleteUI(self.segmentControls[-1].controlRowCol_LO_Name)
                 
             del self.segmentControls[-1] 
     
     def toParentBranch(self, *_):
     
-        cmds.rowColumnLayout(self.segmentRowCol_LO, e=True, vis=False)
+        cmds.scrollLayout(self.segmentScroll_LO, e=True, vis=False)
         self.parentBranch.activateBranchUI()
         
     def calculateBranchNumber(self):

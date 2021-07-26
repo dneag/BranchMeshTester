@@ -20,25 +20,17 @@ class SegmentControls:
         homeBranch.theGUI.segmentControlsCount += 1
         totalSegs = homeBranch.theGUI.segmentControlsCount
         
-        # names needed for deleting ui elements
-        self.pol_FLD_Name = "pol_FLD_" + str(totalSegs)
-        self.azi_FLD_Name = "azi_FLD_" + str(totalSegs)
-        self.distance_FLD_Name = "distance_FLD_" + str(totalSegs)
-        self.radius_FLD_Name = "radius_FLD_" + str(totalSegs)
-        self.separator_Name = "separator_" + str(totalSegs)
-        self.checkBox_Name = "checkBox_" + str(totalSegs)
-        self.offSet_FLD_Name = "offSet_FLD_" + str(totalSegs)
-        self.toBranchButton_Name = "toBranchButton_" + str(totalSegs)
-        
         # segment control UI elements
-        self.pol_FLD = cmds.intField(self.pol_FLD_Name, v=0, min=0, max=359)
-        self.azi_FLD = cmds.intField(self.azi_FLD_Name, v=0, min=0, max=359)
-        self.distance_FLD = cmds.floatField(self.distance_FLD_Name, v=.3, pre=2, min=.01, max=3)
-        self.radius_FLD = cmds.floatField(self.radius_FLD_Name, v=.3, pre=2, min=.01, max=3)
-        self.separator = cmds.separator(self.separator_Name, style="none")
-        self.checkBox = cmds.checkBox(self.checkBox_Name, l="", onc=partial(self.lateralBranch_On, homeBranch), ofc=partial(self.lateralBranch_Off, homeBranch))
-        self.offSet_FLD = cmds.floatField(self.offSet_FLD_Name, v=.15, pre=2, min=.01, max=3, en=False)
-        self.toBranchButton = cmds.button(self.toBranchButton_Name, l="->",en=False, bgc=[.4,.4,.4], command=partial(homeBranch.locateAndActivate, self.segmentNumber))
+        self.controlRowCol_LO_Name = "controlRowCol_LO_" + str(totalSegs)
+        self.controlRowCol_LO = cmds.rowColumnLayout(self.controlRowCol_LO_Name, nc=8, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ], rs=[1,5])
+        self.pol_FLD = cmds.intField(v=0, min=0, max=359)
+        self.azi_FLD = cmds.intField(v=0, min=0, max=359)
+        self.distance_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
+        self.radius_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
+        self.separator = cmds.separator(style="none")
+        self.checkBox = cmds.checkBox(l="", onc=partial(self.lateralBranch_On, homeBranch), ofc=partial(self.lateralBranch_Off, homeBranch))
+        self.offSet_FLD = cmds.floatField(v=.15, pre=2, min=.01, max=3, en=False)
+        self.toBranchButton = cmds.button(l="->",en=False, bgc=[.4,.4,.4], command=partial(homeBranch.locateAndActivate, self.segmentNumber))
         
     def lateralBranch_On(self, parentBranch, checkBoxState):
     
@@ -73,7 +65,7 @@ class SegmentControls:
         for i, cb in enumerate(parentBranch.childBranches):
             if cb.rootSegNum == self.segmentNumber:
                 self.lateralBranch = None
-                cmds.deleteUI(parentBranch.childBranches[i].segmentRowCol_LO_Name)
+                cmds.deleteUI(parentBranch.childBranches[i].segmentScroll_LO_Name)
                 del parentBranch.childBranches[i]
                 break
                 

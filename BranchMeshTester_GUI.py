@@ -43,9 +43,7 @@ class GUI():
         self.makeSegmentControlLabels(self.mainColumn_LO)
         
         cmds.separator(style="double",h=4,w=300,hr=True)
-        
-        self.segmentScroll_LO = cmds.scrollLayout(w=300,h=500, bgc=[.2,.2,.2])
-        
+
         self.rootBranch = Branch(0, None, self)
         self.rootBranch.activateBranchUI()
         
