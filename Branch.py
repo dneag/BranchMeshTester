@@ -26,16 +26,25 @@ class Branch:
         self.segmentScroll_LO_Name = "segmentScroll_LO_" + str(theGUI.branchCount)
         self.segmentScroll_LO = cmds.scrollLayout(self.segmentScroll_LO_Name, w=300,h=500, bgc=[.2,.2,.2], vis=False)
     
-    def collectSegmentInfo(self):
+    def collectSegmentAttributes(self, segmentAttributes):
     
-        # makes a depth first traversal of the segments, collecting attributes at each
+        # makes a depth first traversal of the segments, adding them to the segmentAttributes list
         
         for sc in self.segmentControls:
         
+            segmentAttributes.extend([
+                cmds.intField(sc.pol_FLD, q=True, v=True),
+                cmds.intField(sc.azi_FLD, q=True, v=True),
+                cmds.floatField(sc.distance_FLD, q=True, v=True),
+                cmds.floatField(sc.radius_FLD, q=True, v=True)
+                ])
+                
             if (sc.lateralBranch is not None):
-            
-                sc.lateralBranch.collectSegmentInfo()
-        
+                segmentAttributes.extend([1., cmds.floatField(sc.offSet_FLD, q=True, v=True)])
+                sc.lateralBranch.collectSegmentAttributes(segmentAttributes)
+            else:
+                segmentAttributes.append(0.)
+                
     def activateBranchUI(self):
         
         cmds.scrollLayout(self.segmentScroll_LO, e=True, vis=True)

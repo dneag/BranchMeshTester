@@ -54,6 +54,10 @@ class GUI():
 
         self.branchReport(self.rootBranch, "1")
         
+        segmentAttributes = []
+        self.rootBranch.collectSegmentAttributes(segmentAttributes)
+        print segmentAttributes
+        
         cmds.makeBranchMeshes()
         
     def branchReport(self, branch, branchNumber):
