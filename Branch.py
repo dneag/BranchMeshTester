@@ -70,6 +70,10 @@ class Branch:
 
         if (len(self.segmentControls) > 0):
         
+            # deleting SegmentControls also means deleting the segment's lateral branch if it has one
+            if (self.segmentControls[-1].lateralBranch is not None):
+                self.segmentControls[-1].deleteLateralBranch(self)
+                
             # del does NOT call the destructor so we will delete the controls here
             cmds.deleteUI(self.segmentControls[-1].controlRowCol_LO_Name)
                 

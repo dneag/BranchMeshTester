@@ -32,7 +32,7 @@ class SegmentControls:
         self.offSet_FLD = cmds.floatField(v=.15, pre=2, min=.01, max=3, en=False)
         self.toBranchButton = cmds.button(l="->",en=False, bgc=[.4,.4,.4], command=partial(homeBranch.locateAndActivate, self.segmentNumber))
         
-    def lateralBranch_On(self, parentBranch, checkBoxState):
+    def lateralBranch_On(self, homeBranch, checkBoxState):
     
         # turns on lateral branch controls and creates a new branch
         
@@ -40,37 +40,41 @@ class SegmentControls:
         cmds.floatField(self.offSet_FLD, e=True, en=checkBoxState)
         cmds.button(self.toBranchButton, e=True, en=checkBoxState)
         
-        # create a new Branch and appends it to the parentBranch's list of childBranches
+        # create a new Branch and appends it to the homeBranch's list of childBranches
         # childBranches is always in ascending order by the Branch's rootSegNum
-        self.lateralBranch = Branch(self.segmentNumber, parentBranch, parentBranch.theGUI)
-        parentBranch.childBranches.append(self.lateralBranch)
-        parentBranch.childBranches[-1].makeSegmentControls()
-        parentBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
+        self.lateralBranch = Branch(self.segmentNumber, homeBranch, homeBranch.theGUI)
+        homeBranch.childBranches.append(self.lateralBranch)
+        homeBranch.childBranches[-1].makeSegmentControls()
+        homeBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
         
-        # for cb in parentBranch.childBranches:
+        # for cb in homeBranch.childBranches:
         
             # print cb.rootSegNum
         
         # print " "
         
-    def lateralBranch_Off(self, parentBranch, checkBoxState):
+    def lateralBranch_Off(self, homeBranch, checkBoxState):
     
         # turns off lateral branch controls and removes the branch located on the segment
         
         # disable the offset and toBranch button controls
         cmds.floatField(self.offSet_FLD, e=True, en=checkBoxState)
         cmds.button(self.toBranchButton, e=True, en=checkBoxState)
-        
-        # removes the branch rooted at the segment corresponding to rootSegNum
-        for i, cb in enumerate(parentBranch.childBranches):
-            if cb.rootSegNum == self.segmentNumber:
-                self.lateralBranch = None
-                cmds.deleteUI(parentBranch.childBranches[i].segmentScroll_LO_Name)
-                del parentBranch.childBranches[i]
-                break
+          
+        self.deleteLateralBranch(homeBranch)
                 
-        # for cb in parentBranch.childBranches:
+        # for cb in homeBranch.childBranches:
         
             # print cb.rootSegNum
         
         # print " "
+        
+    def deleteLateralBranch(self, homeBranch):
+    
+        # removes the branch rooted at the segment corresponding to rootSegNum
+        for i, cb in enumerate(homeBranch.childBranches):
+            if cb.rootSegNum == self.segmentNumber:
+                self.lateralBranch = None
+                cmds.deleteUI(homeBranch.childBranches[i].segmentScroll_LO_Name)
+                del homeBranch.childBranches[i]
+                break
