@@ -52,8 +52,21 @@ class GUI():
 
     def callMainCommand(self, *_):
 
+        self.branchReport(self.rootBranch, "1")
+        
         cmds.makeBranchMeshes()
         
+    def branchReport(self, branch, branchNumber):
+        
+        # print information about branches 
+        
+        print "Branch " + branchNumber + " has " + str(len(branch.childBranches)) + " child branches and " + str(len(branch.segmentControls)) + " segments."
+        
+        for i, cb in enumerate(branch.childBranches):
+        
+            nextBranchNumber = branchNumber + ":" + str(i + 1)
+            self.branchReport(cb, nextBranchNumber)
+            
     def makeMainCommandButton(self, startingLayout):
 
         cmds.separator(style="none",h=5)
