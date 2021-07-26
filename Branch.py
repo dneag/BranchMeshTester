@@ -14,13 +14,27 @@ class Branch:
     
     def __init__(self, rootSegNum, parentBranch, theGUI):
     
+        theGUI.branchCount += 1
+        
         self.theGUI = theGUI
         self.rootSegNum = rootSegNum
-        self.segmentControls = []
         self.parentBranch = parentBranch
+        self.segmentControls = []
         self.childBranches = []
+        
         cmds.setParent(theGUI.segmentScroll_LO)
-        self.segmentRowCol_LO = cmds.rowColumnLayout(nc=8, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ], rs=[1,5], vis=False)
+        self.segmentRowCol_LO_Name = "segmentRowCol_LO_" + str(theGUI.branchCount)
+        self.segmentRowCol_LO = cmds.rowColumnLayout(self.segmentRowCol_LO_Name, nc=8, cw=[ (1,40), (2,40), (3,40), (4,40), (5,20), (6,30), (7,45), (8,30) ], rs=[1,5], vis=False)
+    
+    def collectSegmentInfo(self):
+    
+        # makes a depth first traversal of the segments, collecting attributes at each
+        
+        for sc in self.segmentControls:
+        
+            if (sc.lateralBranch is not None)
+            
+                sc.lateralBranch.collectSegmentInfo()
         
     def activateBranchUI(self):
         

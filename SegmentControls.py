@@ -14,12 +14,13 @@ class SegmentControls:
     
     def __init__(self, homeBranch, segmentNumber):
     
-        self.segmentNumber = segmentNumber # the index + 1 of the segment on the branch
+        self.segmentNumber = segmentNumber # the index + 1 of this segment on the branch
+        self.lateralBranch = None
         
         homeBranch.theGUI.segmentControlsCount += 1
         totalSegs = homeBranch.theGUI.segmentControlsCount
         
-        # names needed for cmds.deleteUI()
+        # names needed for deleting ui elements
         self.pol_FLD_Name = "pol_FLD_" + str(totalSegs)
         self.azi_FLD_Name = "azi_FLD_" + str(totalSegs)
         self.distance_FLD_Name = "distance_FLD_" + str(totalSegs)
@@ -49,7 +50,8 @@ class SegmentControls:
         
         # create a new Branch and appends it to the parentBranch's list of childBranches
         # childBranches is always in ascending order by the Branch's rootSegNum
-        parentBranch.childBranches.append(Branch(self.segmentNumber, parentBranch, parentBranch.theGUI))
+        self.lateralBranch = Branch(self.segmentNumber, parentBranch, parentBranch.theGUI)
+        parentBranch.childBranches.append(self.lateralBranch)
         parentBranch.childBranches[-1].makeSegmentControls()
         parentBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
         
@@ -70,6 +72,7 @@ class SegmentControls:
         # removes the branch rooted at the segment corresponding to rootSegNum
         for i, cb in enumerate(parentBranch.childBranches):
             if cb.rootSegNum == self.segmentNumber:
+                self.lateralBranch = None
                 cmds.deleteUI(parentBranch.childBranches[i].segmentRowCol_LO_Name)
                 del parentBranch.childBranches[i]
                 break
