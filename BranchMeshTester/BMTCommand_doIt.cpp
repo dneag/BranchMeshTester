@@ -13,6 +13,7 @@
 
 #include <maya/MStreamUtils.h>
 #include <maya/MArgDatabase.h>
+#include <maya/MArgList.h>
 #include <maya/MSyntax.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MFloatPointArray.h>
@@ -37,6 +38,20 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 
 	MArgDatabase argData(syntax(), argList, &status);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
+
+	uint segmentAttributesCount = argData.numberOfFlagUses("-sa");
+	std::vector<double>  segmentAttributes(segmentAttributesCount);
+	for (int i = 0; i < segmentAttributesCount; ++i) {
+
+		MArgList argSegmentAttributes;
+		status = argData.getFlagArgumentList("-sa", i, argSegmentAttributes);
+		segmentAttributes[i] = argSegmentAttributes.asDouble(0, &status);
+	}
+
+	MStreamUtils::stdOutStream() << "Hello from the Maya API!  Your segment attributes are..." << "\n";
+	for (auto a : segmentAttributes) {
+		MStreamUtils::stdOutStream() << a << ", ";
+	}
 
 	// there will always be a root segment regardless of user input
 	Meristem *rootMeri = new Meristem(.01, 8);

@@ -12,5 +12,11 @@ MSyntax BMTCommand::newSyntax() {
 
 	MSyntax syntax;
 
+	syntax.addFlag("-sa", "-segment attributes", MSyntax::kDouble);
+	syntax.makeFlagMultiUse("-sa");
+
+	syntax.enableEdit(false);
+	syntax.enableQuery(false);
+
 	return syntax;
 }

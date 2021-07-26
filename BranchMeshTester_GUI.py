@@ -58,7 +58,7 @@ class GUI():
         self.rootBranch.collectSegmentAttributes(segmentAttributes)
         print segmentAttributes
         
-        cmds.makeBranchMeshes()
+        cmds.makeBranchMeshes(sa=segmentAttributes)
         
     def branchReport(self, branch, branchNumber):
         
