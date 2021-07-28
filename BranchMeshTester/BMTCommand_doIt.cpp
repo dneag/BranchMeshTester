@@ -27,9 +27,13 @@
 
 namespace {
 
+	void createSegments(Segment *rootSeg, MStatus &status, const MArgDatabase &argData);
+
 	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg);
 
 	void sendMeshesToMaya(std::vector<BranchMesh*> treeMesh);
+
+	void checkBranches(Segment * seg, int &segIndex);
 }
 
 MStatus BMTCommand::doIt(const MArgList &argList) {
@@ -39,32 +43,116 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 	MArgDatabase argData(syntax(), argList, &status);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 
-	uint segmentAttributesCount = argData.numberOfFlagUses("-sa");
-	std::vector<double>  segmentAttributes(segmentAttributesCount);
-	for (int i = 0; i < segmentAttributesCount; ++i) {
-
-		MArgList argSegmentAttributes;
-		status = argData.getFlagArgumentList("-sa", i, argSegmentAttributes);
-		segmentAttributes[i] = argSegmentAttributes.asDouble(0, &status);
-	}
-
-	MStreamUtils::stdOutStream() << "Hello from the Maya API!  Your segment attributes are..." << "\n";
-	for (auto a : segmentAttributes) {
-		MStreamUtils::stdOutStream() << a << ", ";
-	}
-
 	// there will always be a root segment regardless of user input
 	Meristem *rootMeri = new Meristem(.01, 8);
 	Segment *rootSeg = new Segment(CVect(0., .3, 0.), Point(0., -.3, 0.), .02, rootMeri);
 
-	std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
+	createSegments(rootSeg, status, argData);
 
-	sendMeshesToMaya(treeMesh);
+	int segIndex = 0;
+	checkBranches(rootSeg, segIndex);
+
+	//std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
+
+	//sendMeshesToMaya(treeMesh);
 
 	return MS::kSuccess;
 }
 
 namespace {
+
+	void createSegments(Segment *rootSeg, MStatus &status, const MArgDatabase &argData) {
+
+		uint totalBranches = argData.numberOfFlagUses("-spb");
+		std::vector<int> segmentsPerBranch;
+		std::vector<int> segIndicesOnParent;
+
+		for (int i = 0; i < totalBranches; ++i) {
+
+			MArgList branchArgList;
+			status = argData.getFlagArgumentList("-spb", i, branchArgList);
+			segmentsPerBranch.push_back(branchArgList.asInt(0, &status));
+
+			status = argData.getFlagArgumentList("-iop", i, branchArgList);
+			segIndicesOnParent.push_back(branchArgList.asInt(1, &status));
+		}
+
+		// the uses should be the same for any segment attribute flag, so those from -p should represent the length of 
+		// all other incoming attribute lists
+		uint segmentAttributesCount = argData.numberOfFlagUses("-p");
+		std::vector<double>  pols(segmentAttributesCount);
+		std::vector<double>  azis(segmentAttributesCount);
+		std::vector<double>  dists(segmentAttributesCount);
+		std::vector<double>  rads(segmentAttributesCount);
+		std::vector<double>  offsets(segmentAttributesCount);
+
+		for (int i = 0; i < segmentAttributesCount; ++i) {
+
+			int argIndex = 0;
+			MArgList argSegmentAttributes;
+
+			status = argData.getFlagArgumentList("-p", i, argSegmentAttributes);
+			pols[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+
+			status = argData.getFlagArgumentList("-a", i, argSegmentAttributes);
+			azis[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+
+			status = argData.getFlagArgumentList("-d", i, argSegmentAttributes);
+			dists[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+
+			status = argData.getFlagArgumentList("-r", i, argSegmentAttributes);
+			rads[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+
+			status = argData.getFlagArgumentList("-o", i, argSegmentAttributes);
+			offsets[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+		}
+
+		Space worldSpace({ 0.,0. });
+		Segment *previousSeg = rootSeg;
+		int branchFirstSegIndex = 0;
+		std::vector<Segment*> allNewSegs;
+
+		// do the first branch separately because it will not have a parent segment nor offset
+		for (int s = 0; s < segmentsPerBranch[0]; ++s) {
+
+			CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
+			Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
+			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s], rootSeg->getMeri());
+			previousSeg->addSegAbove(newSeg);
+			allNewSegs.push_back(newSeg);
+			previousSeg = newSeg;
+		}
+
+		branchFirstSegIndex += segmentsPerBranch[0];
+
+		for (int bi = 1; bi < totalBranches; ++bi) {
+
+			// This loop iterates once for each branch, with segmentsPerBranch[bi] indicating the number of segments on the branch
+			// The first seg's start point is calculated from its parent seg's offset and start point, with the exception of 
+			//    the first seg on the first branch. Thus we start at bi = 1
+
+			int iop = segIndicesOnParent[bi];
+			Point newSegStartPoint = allNewSegs[iop]->getStartPoint() + allNewSegs[iop]->getVect().resized(offsets[iop]);
+			CVect newSegVect = worldSpace.makeVector(pols[branchFirstSegIndex], azis[branchFirstSegIndex], dists[branchFirstSegIndex]);
+			Meristem *branchMeri = new Meristem(.01, 8);
+			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[branchFirstSegIndex], branchMeri);
+			allNewSegs[iop]->addLateralSeg(newSeg);
+			allNewSegs.push_back(newSeg);
+			previousSeg = newSeg;
+
+			for (int s = branchFirstSegIndex + 1; s < branchFirstSegIndex + segmentsPerBranch[bi]; ++s) {
+
+				CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
+				Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
+				Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s], branchMeri);
+				previousSeg->addSegAbove(newSeg);
+				allNewSegs.push_back(newSeg);
+				previousSeg = newSeg;
+			}
+
+			branchFirstSegIndex += segmentsPerBranch[bi];
+		}
+	}
 
 	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg) {
 
@@ -139,6 +227,21 @@ namespace {
 				iaFaceCounts, iaFaceConnects, faU, faV);
 			fnMesh.assignUVs(iaUVCounts, iaUVIDs);
 			dagFn.addChild(newTransform);
+		}
+	}
+
+	void checkBranches(Segment * seg, int &segIndex) {
+
+		for (auto s : seg->getLateralSegs()) {
+
+			MStreamUtils::stdOutStream() << "New branch at segment index " << segIndex << "\n";
+			int newBranchSegIndex = 0;
+			checkBranches(s, newBranchSegIndex);
+		}
+
+		for (auto s : seg->getSegsAbove()) {
+
+			checkBranches(s, ++segIndex);
 		}
 	}
 }

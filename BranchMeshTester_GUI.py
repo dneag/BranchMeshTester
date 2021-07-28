@@ -7,6 +7,7 @@ from functools import partial
 import Branch
 reload(Branch)
 from Branch import Branch
+from Branch import SegmentControls
 
 class GUI():
 
@@ -54,11 +55,25 @@ class GUI():
 
         self.branchReport(self.rootBranch, "1")
         
-        segmentAttributes = []
-        self.rootBranch.collectSegmentAttributes(segmentAttributes)
-        print segmentAttributes
+        pols = []
+        azis = []
+        dists = []
+        rads = []
+        offsets = []
         
-        cmds.makeBranchMeshes(sa=segmentAttributes)
+        segsPerBranch = []
+        indicesOfSegsOnParent = [ -1 ] # each element represents the index of the parent segment (in the attributes lists (pol,azi,etc)) for the corresponding branch
+        
+        allBranches = [ self.rootBranch ]
+        
+        for b in allBranches:
+        
+            b.collectSegmentAttributes(allBranches, segsPerBranch, indicesOfSegsOnParent, pols, azis, dists, rads, offsets)
+        
+        print segsPerBranch
+        print indicesOfSegsOnParent
+        print offsets
+        cmds.makeBranchMeshes(spb=segsPerBranch, iop=indicesOfSegsOnParent, p=pols, a=azis, d=dists, r=rads, o=offsets)
         
     def branchReport(self, branch, branchNumber):
         

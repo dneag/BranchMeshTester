@@ -122,7 +122,7 @@ class Space
 
 public:
 
-	// create a Space oriented to the angles parameter
+	// create a Space oriented to the angles parameter, the angles represent the positive y-axis
 	Space(SphAngles angles);
 
 	// takes spherical coordinates as arguments and returns a CVect relative to the current orientation

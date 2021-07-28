@@ -47,9 +47,15 @@ public:
 
 	double getLength() const { return vect.getMag(); }
 
+	void setStartPoint(const Point &sp) { startPoint = sp; }
+
 	Point getStartPoint() const { return startPoint; }
 
+	void addSegAbove(Segment *seg) { segsAbove.push_back(seg); }
+
 	std::vector<Segment*> getSegsAbove() const { return segsAbove; }
+
+	void addLateralSeg(Segment *seg) { lateralSegs.push_back(seg); }
 
 	std::vector<Segment*> getLateralSegs() const { return lateralSegs; }
 
