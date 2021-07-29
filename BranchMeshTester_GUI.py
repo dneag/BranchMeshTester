@@ -70,10 +70,9 @@ class GUI():
         
             b.collectSegmentAttributes(allBranches, segsPerBranch, indicesOfSegsOnParent, pols, azis, dists, rads, offsets)
         
-        print segsPerBranch
-        print indicesOfSegsOnParent
-        print offsets
-        cmds.makeBranchMeshes(spb=segsPerBranch, iop=indicesOfSegsOnParent, p=pols, a=azis, d=dists, r=rads, o=offsets)
+        if (len(self.rootBranch.segmentControls) > 0):
+        
+            cmds.makeBranchMeshes(spb=segsPerBranch, iop=indicesOfSegsOnParent, p=pols, a=azis, d=dists, r=rads, o=offsets)
         
     def branchReport(self, branch, branchNumber):
         

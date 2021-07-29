@@ -27,7 +27,7 @@
 
 namespace {
 
-	void createSegments(Segment *rootSeg, MStatus &status, const MArgDatabase &argData);
+	Segment * createSegments(MStatus &status, const MArgDatabase &argData);
 
 	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg);
 
@@ -43,25 +43,21 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 	MArgDatabase argData(syntax(), argList, &status);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 
-	// there will always be a root segment regardless of user input
-	Meristem *rootMeri = new Meristem(.01, 8);
-	Segment *rootSeg = new Segment(CVect(0., .3, 0.), Point(0., -.3, 0.), .02, rootMeri);
-
-	createSegments(rootSeg, status, argData);
+	Segment *rootSeg = createSegments(status, argData);
 
 	int segIndex = 0;
-	checkBranches(rootSeg, segIndex);
+	//checkBranches(rootSeg, segIndex);
 
-	//std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
+	std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
 
-	//sendMeshesToMaya(treeMesh);
+	sendMeshesToMaya(treeMesh);
 
 	return MS::kSuccess;
 }
 
 namespace {
 
-	void createSegments(Segment *rootSeg, MStatus &status, const MArgDatabase &argData) {
+	Segment * createSegments(MStatus &status, const MArgDatabase &argData) {
 
 		uint totalBranches = argData.numberOfFlagUses("-spb");
 		std::vector<int> segmentsPerBranch;
@@ -92,10 +88,10 @@ namespace {
 			MArgList argSegmentAttributes;
 
 			status = argData.getFlagArgumentList("-p", i, argSegmentAttributes);
-			pols[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+			pols[i] = argSegmentAttributes.asDouble(argIndex++, &status) * (MM::PI / 180.); // convert to radians
 
 			status = argData.getFlagArgumentList("-a", i, argSegmentAttributes);
-			azis[i] = argSegmentAttributes.asDouble(argIndex++, &status);
+			azis[i] = argSegmentAttributes.asDouble(argIndex++, &status) * (MM::PI / 180.); // convert to radians
 
 			status = argData.getFlagArgumentList("-d", i, argSegmentAttributes);
 			dists[i] = argSegmentAttributes.asDouble(argIndex++, &status);
@@ -108,12 +104,17 @@ namespace {
 		}
 
 		Space worldSpace({ 0.,0. });
+
+		// Make the first segment separately to establish its startPoint and the first meristem
+		CVect rootSegVect = worldSpace.makeVector(pols[0], azis[0], dists[0]);
+		Meristem *rootMeri = new Meristem(.01, 8);
+		Segment *rootSeg = new Segment(rootSegVect, { 0.,0.,0. }, rads[0], rootMeri);
 		Segment *previousSeg = rootSeg;
-		int branchFirstSegIndex = 0;
+		
 		std::vector<Segment*> allNewSegs;
 
 		// do the first branch separately because it will not have a parent segment nor offset
-		for (int s = 0; s < segmentsPerBranch[0]; ++s) {
+		for (int s = 1; s < segmentsPerBranch[0]; ++s) {
 
 			CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
 			Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
@@ -123,6 +124,7 @@ namespace {
 			previousSeg = newSeg;
 		}
 
+		int branchFirstSegIndex = 0;
 		branchFirstSegIndex += segmentsPerBranch[0];
 
 		for (int bi = 1; bi < totalBranches; ++bi) {
@@ -152,6 +154,8 @@ namespace {
 
 			branchFirstSegIndex += segmentsPerBranch[bi];
 		}
+
+		return rootSeg;
 	}
 
 	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg) {

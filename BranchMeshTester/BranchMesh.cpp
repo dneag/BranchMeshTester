@@ -8,6 +8,8 @@
 // creates the object and its first ring of vertices
 BranchMesh::BranchMesh(Segment *firstSeg, const int sides) {
 
+	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::BranchMesh() " << "\n";
+
 	initialRadius = firstSeg->getRadius();
 
 	if (sides > 2) {
@@ -48,7 +50,7 @@ BranchMesh::BranchMesh(Segment *firstSeg, const int sides) {
 void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector<double> &preadjusts, std::queue<Segment*> &firstSegsOfBMeshes) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::go()" << "\n";
-
+	
 	// first check for the beginnings of any new branch meshes
 	std::vector<Segment*> potentialFirstSegs = seg->getConnectedUpperSegs();
 	for (auto connectedSeg : potentialFirstSegs) {
@@ -61,7 +63,7 @@ void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector
 	if (!nextSegOnPath) {
 
 		// this should mean this is the last segment for this mesh
-		//MStreamUtils::stdOutStream() << "last seg..." << "\n\n";
+		MStreamUtils::stdOutStream() << "last seg..." << "\n\n";
 
 		this->completePath(seg, currentOrderSides, preadjusts);
 
@@ -109,7 +111,7 @@ Segment * BranchMesh::findNextSegOnPath(Segment *currentSeg) {
 
 void BranchMesh::completePath(Segment *lastSeg, const int sides, const std::vector<double> &preadjusts) {
 
-	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::completePath()" << "\n";
+	MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::completePath() " << "\n";
 
 	std::size_t lowerRingFirstVert = verts.size() - sides;
 	for (int i = 0; i < sides; ++i)

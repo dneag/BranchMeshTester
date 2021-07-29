@@ -133,7 +133,7 @@ class SegmentControls:
         self.pol_FLD = cmds.intField(v=0, min=0, max=359)
         self.azi_FLD = cmds.intField(v=0, min=0, max=359)
         self.distance_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
-        self.radius_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
+        self.radius_FLD = cmds.floatField(v=.02, pre=2, min=.01, max=3)
         self.separator = cmds.separator(style="none")
         self.checkBox = cmds.checkBox(l="", onc=partial(self.lateralBranch_On, homeBranch), ofc=partial(self.lateralBranch_Off, homeBranch))
         self.offSet_FLD = cmds.floatField(v=.15, pre=2, min=.01, max=3, en=False)
