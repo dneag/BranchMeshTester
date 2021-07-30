@@ -17,10 +17,13 @@ class Branch:
         self.parentBranch = parentBranch
         self.segmentControls = []
         self.childBranches = []
-        
+      
         cmds.setParent(theGUI.mainColumn_LO)
         self.segmentScroll_LO_Name = "segmentScroll_LO_" + str(theGUI.branchCount)
         self.segmentScroll_LO = cmds.scrollLayout(self.segmentScroll_LO_Name, w=300,h=500, bgc=[.2,.2,.2], vis=False)
+        
+        self.makeSegmentControls()
+        cmds.floatField(self.segmentControls[0].radius_FLD, e=True, en=True)
     
     def collectSegmentAttributes(self, allBranches, segsPerBranch, indicesOfSegsOnParent, pols, azis, dists, rads, offsets):
         
@@ -68,8 +71,7 @@ class Branch:
     def makeSegmentControls(self, *_):
     
         cmds.setParent(self.segmentScroll_LO)       
-        segmentNumber = len(self.segmentControls) + 1
-        self.segmentControls.append(SegmentControls(self, segmentNumber))
+        self.segmentControls.append(SegmentControls(self))
     
     def deleteSegmentControls(self, *_):
     
@@ -119,9 +121,9 @@ class SegmentControls:
 
     # represents the controls used for defining a segment
     
-    def __init__(self, homeBranch, segmentNumber):
+    def __init__(self, homeBranch):
     
-        self.segmentNumber = segmentNumber # the index + 1 of this segment on the branch
+        self.segmentNumber = len(homeBranch.segmentControls) + 1 # the index + 1 of this segment on the branch      
         self.lateralBranch = None
         
         homeBranch.theGUI.segmentControlsCount += 1
@@ -133,7 +135,14 @@ class SegmentControls:
         self.pol_FLD = cmds.intField(v=0, min=0, max=359)
         self.azi_FLD = cmds.intField(v=0, min=0, max=359)
         self.distance_FLD = cmds.floatField(v=.3, pre=2, min=.01, max=3)
-        self.radius_FLD = cmds.floatField(v=.02, pre=2, min=.01, max=3)
+        
+        radiusValue = .04
+        if (self.segmentNumber > 1):
+        
+            radiusValue = cmds.floatField(homeBranch.segmentControls[self.segmentNumber - 2].radius_FLD, q=True, v=True)
+            
+        self.radius_FLD = cmds.floatField(v=radiusValue, pre=3, min=.005, max=radiusValue, en=False, cc=partial(self.adjustRadii, homeBranch))
+        
         self.separator = cmds.separator(style="none")
         self.checkBox = cmds.checkBox(l="", onc=partial(self.lateralBranch_On, homeBranch), ofc=partial(self.lateralBranch_Off, homeBranch))
         self.offSet_FLD = cmds.floatField(v=.15, pre=2, min=.01, max=3, en=False)
@@ -147,11 +156,16 @@ class SegmentControls:
         cmds.floatField(self.offSet_FLD, e=True, en=checkBoxState)
         cmds.button(self.toBranchButton, e=True, en=checkBoxState)
         
+        # if there is a segment above this one, turn on its radius controls
+        if (len(homeBranch.segmentControls) > self.segmentNumber):
+        
+            # .segmentNumber is 1 based so it works as the index of the next segment... 
+            cmds.floatField(homeBranch.segmentControls[self.segmentNumber].radius_FLD, e=True, en=True)
+            
         # create a new Branch and appends it to the homeBranch's list of childBranches
         # childBranches is always in ascending order by the Branch's rootSegNum
         self.lateralBranch = Branch(self.segmentNumber, homeBranch, homeBranch.theGUI)
         homeBranch.childBranches.append(self.lateralBranch)
-        homeBranch.childBranches[-1].makeSegmentControls()
         homeBranch.childBranches.sort(key=lambda branch: branch.rootSegNum)
         
         # for cb in homeBranch.childBranches:
@@ -168,6 +182,12 @@ class SegmentControls:
         cmds.floatField(self.offSet_FLD, e=True, en=checkBoxState)
         cmds.button(self.toBranchButton, e=True, en=checkBoxState)
           
+           # if there is a segment above this one, turn on its radius controls
+        if (len(homeBranch.segmentControls) > self.segmentNumber):
+        
+            # .segmentNumber is 1 based so it works as the index of the next segment... 
+            cmds.floatField(homeBranch.segmentControls[self.segmentNumber].radius_FLD, e=True, en=False)
+            
         self.deleteLateralBranch(homeBranch)
                 
         # for cb in homeBranch.childBranches:
@@ -185,3 +205,19 @@ class SegmentControls:
                 cmds.deleteUI(homeBranch.childBranches[i].segmentScroll_LO_Name)
                 del homeBranch.childBranches[i]
                 break
+                
+    def adjustRadii(self, homeBranch, *_):
+    
+        # Check the radius setting of all subsequent segments.  If any are higher than this seg's radius, make them equal
+        # Also adjust the max radius of subsequent segments
+        thisSegRadius = cmds.floatField(self.radius_FLD, q=True, v=True)
+        
+        if (len(homeBranch.segmentControls) > self.segmentNumber):
+        
+            for sc in homeBranch.segmentControls[self.segmentNumber:]:
+            
+                if (cmds.floatField(sc.radius_FLD, q=True, v=True) > thisSegRadius):
+                
+                    cmds.floatField(sc.radius_FLD, e=True, v=thisSegRadius)
+                    
+                cmds.floatField(sc.radius_FLD, e=True, max=thisSegRadius)

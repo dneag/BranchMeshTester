@@ -55,12 +55,14 @@ class GUI():
 
         self.branchReport(self.rootBranch, "1")
         
+        # The lengths of the following 4 lists are the same and correspond to the number of segmentControls
         pols = []
         azis = []
         dists = []
         rads = []
         offsets = []
         
+        # The lengths of the following 2 lists are the same and correspond to the number of branches
         segsPerBranch = []
         indicesOfSegsOnParent = [ -1 ] # each element represents the index of the parent segment (in the attributes lists (pol,azi,etc)) for the corresponding branch
         
@@ -70,7 +72,7 @@ class GUI():
         
             b.collectSegmentAttributes(allBranches, segsPerBranch, indicesOfSegsOnParent, pols, azis, dists, rads, offsets)
         
-        if (len(self.rootBranch.segmentControls) > 0):
+        if (len(self.rootBranch.segmentControls) > 0):  # if the root branch has no segment controls then their is no mesh to make
         
             cmds.makeBranchMeshes(spb=segsPerBranch, iop=indicesOfSegsOnParent, p=pols, a=azis, d=dists, r=rads, o=offsets)
         
