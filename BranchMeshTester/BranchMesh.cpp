@@ -228,7 +228,7 @@ double BranchMesh::findDividerIfAny(const double currentSegRadius, Segment *next
 		}
 
 		if (largestRadius == 0. || largestRadius >= nextSegOnPath->getLength())
-			MStreamUtils::stdOutStream() << "WARNING: creating divider with funny width" << "\n";
+			MStreamUtils::stdOutStream() << "WARNING: creating divider with funny width: " << largestRadius << "\n";
 
 		//MStreamUtils::stdOutStream() << "largestRadius: " << largestRadius << "\n";
 

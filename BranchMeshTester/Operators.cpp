@@ -36,6 +36,12 @@ Point operator-(Point const &lhs, CVect const &rhs) {
 	return p;
 }
 
+std::ostream& operator<<(std::ostream& os, const Point &p) {
+
+	os << p.x << ", " << p.y << ", " << p.z;
+	return os;
+}
+
 CVect operator+(CVect const &lhs, CVect const &rhs) {
 
 	CVect v;
@@ -97,4 +103,10 @@ CVect operator/(CVect const &lhs, const double divisor) {
 	v.y = lhs.y / divisor;
 	v.z = lhs.z / divisor;
 	return v;
+}
+
+std::ostream& operator<<(std::ostream& os, const CVect &v) {
+
+	os << v.x << ", " << v.y << ", " << v.z;
+	return os;
 }

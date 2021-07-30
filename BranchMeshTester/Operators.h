@@ -8,7 +8,9 @@ overloads operators for CVect and Point math
 #ifndef Operators_h
 #define Operators_h
 
+#include <ostream>
 #include "BMTMath.h"
+
 
 Point& operator+=(Point &lhs, const CVect &rhs);
 
@@ -17,6 +19,8 @@ Point& operator-=(Point &lhs, const CVect &rhs);
 Point operator+(Point const &lhs, CVect const &rhs);
 
 Point operator-(Point const &lhs, CVect const &rhs);
+
+std::ostream& operator<<(std::ostream& os, const Point &p);
 
 CVect operator+(CVect const &lhs, CVect const &rhs);
 
@@ -31,5 +35,7 @@ CVect& operator*=(CVect &lhs, const double multiplier);
 CVect operator*(CVect const &lhs, const double multiplier);
 
 CVect operator/(CVect const &lhs, const double divisor);
+
+std::ostream& operator<<(std::ostream& os, const CVect &v);
 
 #endif /* Operators_h */

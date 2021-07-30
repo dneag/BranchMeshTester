@@ -108,7 +108,7 @@ namespace {
 		// Make the first segment separately to establish its startPoint and the first meristem
 		CVect rootSegVect = worldSpace.makeVector(pols[0], azis[0], dists[0]);
 		Meristem *rootMeri = new Meristem(.01, 8);
-		Segment *rootSeg = new Segment(rootSegVect, { 0.,0.,0. }, rads[0], rootMeri);
+		Segment *rootSeg = new Segment(rootSegVect, { 0.,0.,0. }, rads[0] + rootMeri->skinThickness, rootMeri);
 		Segment *previousSeg = rootSeg;
 		
 		std::vector<Segment*> allNewSegs;
@@ -118,7 +118,7 @@ namespace {
 
 			CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
 			Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
-			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s], rootSeg->getMeri());
+			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s] + rootMeri->skinThickness, rootSeg->getMeri());
 			previousSeg->addSegAbove(newSeg);
 			allNewSegs.push_back(newSeg);
 			previousSeg = newSeg;
@@ -137,7 +137,7 @@ namespace {
 			Point newSegStartPoint = allNewSegs[iop]->getStartPoint() + allNewSegs[iop]->getVect().resized(offsets[iop]);
 			CVect newSegVect = worldSpace.makeVector(pols[branchFirstSegIndex], azis[branchFirstSegIndex], dists[branchFirstSegIndex]);
 			Meristem *branchMeri = new Meristem(.01, 8);
-			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[branchFirstSegIndex], branchMeri);
+			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[branchFirstSegIndex] + branchMeri->skinThickness, branchMeri);
 			allNewSegs[iop]->addLateralSeg(newSeg);
 			allNewSegs.push_back(newSeg);
 			previousSeg = newSeg;
@@ -146,7 +146,7 @@ namespace {
 
 				CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
 				Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
-				Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s], branchMeri);
+				Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s] + branchMeri->skinThickness, branchMeri);
 				previousSeg->addSegAbove(newSeg);
 				allNewSegs.push_back(newSeg);
 				previousSeg = newSeg;

@@ -36,6 +36,8 @@ public:
 
 	std::vector<double> createNextRing(Segment *currentSeg, Segment *nextSeg, const int currentOrderSides, const std::vector<double> &preadjusts);
 
+	void resizeTopRing(double sizeDiff, const Point &center, const int sides);
+
 	// creates and finalizes the positions of the ring of vertices between the top rings of the current seg and next seg
 	void createDividerRing(const double halfDividerWidth, Segment *currentSeg, Segment *nextSeg,
 		const int currentOrderSides, const std::vector<double> &preadjusts);
