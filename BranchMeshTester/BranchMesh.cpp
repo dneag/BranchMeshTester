@@ -83,8 +83,8 @@ void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector
 
 		this->createDividerRing(halfDividerWidth, seg, nextSegOnPath, currentOrderSides, nextPreadjusts);
 		this->addNextFaceConnectsAndCounts(currentOrderSides);
-		// the preadjusts are applied to the divider ring, so we reset them to 0. for the next go()
-		std::fill(nextPreadjusts.begin(), nextPreadjusts.end(), 0.);
+		// the preadjusts are applied to the divider ring, so we reset them to -halfDividerWidth. for the next go()
+		std::fill(nextPreadjusts.begin(), nextPreadjusts.end(), -halfDividerWidth);
 	}
 
 	this->go(nextSegOnPath, currentOrderSides, nextPreadjusts, firstSegsOfBMeshes);
