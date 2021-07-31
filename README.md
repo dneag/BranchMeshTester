@@ -12,7 +12,7 @@ To run...
     - both .py files go in C:\Users\13308\Documents\maya\scripts
     - the .mll file can be placed anywhere - then with Maya open, from the top bar go to Windows -> Settings/Preferences -> Plug-in Manager
     - within the plug-in manager window, click the browse button on the bottom left, navigate to the .mll file, then make sure the 'loaded' checkbox is checked for it
-    - (this may work for other operating systems. If it doesn't, see the link below)
+    - (a similar process should work for other operating systems. If it doesn't, see the link below)
 
   - open Maya's script editor:  Windows -> General Editors -> Script Editor.  Then, on the bottom half of the window, make sure you have a Python tab open
   - enter the following 3 lines of python code:
