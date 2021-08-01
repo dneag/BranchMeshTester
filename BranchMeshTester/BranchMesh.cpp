@@ -5,7 +5,7 @@
 #include "BMTMath.h"
 #include "Operators.h"
 
-// creates the object and its first ring of vertices
+// Creates the object and its first ring of vertices
 BranchMesh::BranchMesh(Segment *firstSeg, const int sides) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::BranchMesh() " << "\n";
