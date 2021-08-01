@@ -1,7 +1,8 @@
 /*
 	Segment.h
 
-	The Segment class - Segments are the building blocks of a BranchMesh
+	Segments are the building blocks of a BranchMesh
+	Segments are typically cylinders, unless they have only 2 sides, in which case they are rectangular planes
 */
 
 #pragma once

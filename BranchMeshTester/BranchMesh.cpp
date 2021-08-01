@@ -5,7 +5,6 @@
 #include "BMTMath.h"
 #include "Operators.h"
 
-// Creates the object and its first ring of vertices
 BranchMesh::BranchMesh(Segment *firstSeg, const int sides) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::BranchMesh() " << "\n";
@@ -136,6 +135,12 @@ std::vector<double> BranchMesh::createNextRing(Segment *currentSeg, Segment *nex
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::createNextRing()" << "\n";
 
+	// We can create the next ring/segment on a mesh by simply adding the segment's vector to each of the vertices on the
+	// previous ring, each sum being the location of a new vertex on the next ring.  However, unless the angle between the two
+	// segments is 0, the size of the vector added to find these new vertices must be adjusted to account for the angle change.
+	// The magnitude of this size adjustment is called the pre-adjust.  The 'preadjusts' and 'newPreadjusts' lists store the pre-adjusts
+	// corresponding to each vertex in the ring.  The 'preadjusts' list in this method contains the pre-adjusts from the previous ring creation,
+	// and will be used to create this ring.  'newPreadjusts' will be sent along for the next ring creation.
 	std::vector<double> newPreadjusts;
 	const double angBetweenSegments = findAngBetween(currentSeg->getVect(), nextSeg->getVect());
 
@@ -204,9 +209,6 @@ std::vector<double> BranchMesh::createNextRing(Segment *currentSeg, Segment *nex
 	return newPreadjusts;
 }
 
-// returns the width of the divider
-// returns 0. if there is no divider
-// pre: all segment radii are already calculated
 double BranchMesh::findDividerIfAny(const double currentSegRadius, Segment *nextSegOnPath) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::findDividerIfAny()" << "\n";
