@@ -1,7 +1,7 @@
 /*
-Segment.h
+	Segment.h
 
-The Segment class.  Segments are the virtual building blocks of a BranchMesh
+	The Segment class - Segments are the building blocks of a BranchMesh
 */
 
 #pragma once
@@ -12,8 +12,8 @@ The Segment class.  Segments are the virtual building blocks of a BranchMesh
 
 #include "BMTMath.h"
 
-// in the larger program, a Meristem class determines much of what happens to Segments
-// in this program it does not at all, we just need two attributes to mimic its usage in BranchMesh
+// In the larger program, a Meristem class determines much of what happens to Segments
+// In this program it does not at all, we just need two attributes to mimic its usage in BranchMesh
 struct Meristem
 {
 	double skinThickness;
@@ -59,6 +59,7 @@ public:
 
 	std::vector<Segment*> getLateralSegs() const { return lateralSegs; }
 
+	// Returns a list combined of lateralSegs and segsAbove
 	std::vector<Segment*> getConnectedUpperSegs() const {
 
 		std::vector<Segment*> connectedUpperSegs;

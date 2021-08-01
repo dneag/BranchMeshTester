@@ -36,17 +36,15 @@ public:
 
 	std::vector<double> createNextRing(Segment *currentSeg, Segment *nextSeg, const int currentOrderSides, const std::vector<double> &preadjusts);
 
-	void resizeTopRing(double sizeDiff, const Point &center, const int sides);
-
 	// creates and finalizes the positions of the ring of vertices between the top rings of the current seg and next seg
 	void createDividerRing(const double halfDividerWidth, Segment *currentSeg, Segment *nextSeg,
 		const int currentOrderSides, const std::vector<double> &preadjusts);
 
-	// traverses all segments until there is no seg above it with the same meristem as the current one
-	// at each segment we check for connected segs with different meristems, adding those segs as new firstSegsOfBMeshes
-	// at each segment we set the positions for the ring of vertices at its end, and if there is a divider above it, we set that ring too
-	// for each ring of vertices added, a corresponding set of faceConnects and faceCounts is also added
-	// when the last segment of the mesh is found, a single cap vertex is added along with a corresponding set of faceConnects and faceCounts
+	// Traverses all segments until there is no seg above the current seg with the same meristem as the current seg
+	// At each segment we check for connected segs with different meristems, adding those segs as new firstSegsOfBMeshes
+	// At each segment we set the positions for the ring of vertices at its end, and if there is a divider above it, we set that ring too
+	// For each ring of vertices added, a corresponding set of faceConnects and faceCounts is also added
+	// When the last segment of the mesh is found, a single cap vertex is added along with a corresponding set of faceConnects and faceCounts
 	void go(Segment *seg, const int currentOrderSides, const std::vector<double> &preadjusts, std::queue<Segment*> &firstSegsOfBMeshes);
 
 	int numVerts() { return verts.size(); }

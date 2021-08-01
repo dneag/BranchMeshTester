@@ -1,7 +1,7 @@
 /*
 	BMTCommand.h
 
-	Creates user defined Maya commands
+	Creates the BMTCommand class
 */
 
 #pragma once

@@ -1,9 +1,9 @@
 /*
 	BMTCommand_doIt.cpp
 
-	defines doIt() method of BMTCommand
+	Defines doIt() method of BMTCommand
 
-	this is sort of a driver file for the program
+	This is sort of a driver file for the program
 	doIt() is the method called when the user executes the command "makeBranchMeshes"
 */
 
@@ -27,15 +27,19 @@
 
 namespace {
 
+	// Takes the information in argData and parses it to create Segment objects
 	Segment * createSegments(MStatus &status, const MArgDatabase &argData);
 
+	// Takes a linked list, starting at rootSeg, and converts it into a list of BranchMeshes
 	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg);
 
+	// Delivers the data from each BranchMesh to the MFnMesh create() method
 	void sendMeshesToMaya(std::vector<BranchMesh*> treeMesh);
-
-	void checkBranches(Segment * seg, int &segIndex);
 }
 
+// Creates the meshes within Maya
+// When the makeBranchMeshes command is executed, this method is called
+// argList will contain all the information in the flags
 MStatus BMTCommand::doIt(const MArgList &argList) {
 
 	MStatus status;
@@ -44,9 +48,6 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 
 	Segment *rootSeg = createSegments(status, argData);
-
-	int segIndex = 0;
-	//checkBranches(rootSeg, segIndex);
 
 	std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
 
@@ -73,7 +74,7 @@ namespace {
 			segIndicesOnParent.push_back(branchArgList.asInt(1, &status));
 		}
 
-		// the uses should be the same for any segment attribute flag, so those from -p should represent the length of 
+		// The uses should be the same for any segment attribute flag, so those from -p should represent the length of 
 		// all other incoming attribute lists
 		uint segmentAttributesCount = argData.numberOfFlagUses("-p");
 		std::vector<double>  pols(segmentAttributesCount);
@@ -113,7 +114,7 @@ namespace {
 		
 		std::vector<Segment*> allNewSegs;
 
-		// do the first branch separately because it will not have a parent segment nor offset
+		// Do the first branch separately because it will not have a parent segment nor offset
 		for (int s = 1; s < segmentsPerBranch[0]; ++s) {
 
 			CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
@@ -131,7 +132,7 @@ namespace {
 
 			// This loop iterates once for each branch, with segmentsPerBranch[bi] indicating the number of segments on the branch
 			// The first seg's start point is calculated from its parent seg's offset and start point, with the exception of 
-			//    the first seg on the first branch. Thus we start at bi = 1
+			// the first seg on the first branch. Thus we start at bi = 1
 
 			int iop = segIndicesOnParent[bi];
 			Point newSegStartPoint = allNewSegs[iop]->getStartPoint() + allNewSegs[iop]->getVect().resized(offsets[iop]);
@@ -160,7 +161,6 @@ namespace {
 
 	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg) {
 
-		// treeMesh is the collection of BranchMeshes
 		std::vector<BranchMesh*> treeMesh;
 
 		std::queue<Segment*> firstSegsOfNewBMeshes;
@@ -191,6 +191,7 @@ namespace {
 		MFnDagNode dagFn;
 		MObject grpTransform = dagFn.create("transform", groupName);
 
+		// deliver the relevant data in each bMesh to the MFnMesh create() method
 		for (auto bMesh : treeMesh)
 		{
 			MFloatPointArray fpaVertices;
@@ -231,21 +232,6 @@ namespace {
 				iaFaceCounts, iaFaceConnects, faU, faV);
 			fnMesh.assignUVs(iaUVCounts, iaUVIDs);
 			dagFn.addChild(newTransform);
-		}
-	}
-
-	void checkBranches(Segment * seg, int &segIndex) {
-
-		for (auto s : seg->getLateralSegs()) {
-
-			MStreamUtils::stdOutStream() << "New branch at segment index " << segIndex << "\n";
-			int newBranchSegIndex = 0;
-			checkBranches(s, newBranchSegIndex);
-		}
-
-		for (auto s : seg->getSegsAbove()) {
-
-			checkBranches(s, ++segIndex);
 		}
 	}
 }

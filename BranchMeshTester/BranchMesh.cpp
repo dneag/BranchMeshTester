@@ -51,10 +51,11 @@ void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::go()" << "\n";
 	
-	// first check for the beginnings of any new branch meshes
+	// First check for the beginnings of any new branch meshes
 	std::vector<Segment*> potentialFirstSegs = seg->getConnectedUpperSegs();
 	for (auto connectedSeg : potentialFirstSegs) {
 
+		// If a connected seg has a different meri, then it is the start of a new branch
 		if (connectedSeg->getMeri() != seg->getMeri())
 			firstSegsOfBMeshes.push(connectedSeg);
 	}
@@ -62,7 +63,7 @@ void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector
 	Segment *nextSegOnPath = findNextSegOnPath(seg);
 	if (!nextSegOnPath) {
 
-		// this should mean this is the last segment for this mesh
+		// This should mean this is the last segment for this mesh
 		MStreamUtils::stdOutStream() << "last seg..." << "\n\n";
 
 		this->completePath(seg, currentOrderSides, preadjusts);
@@ -111,7 +112,7 @@ Segment * BranchMesh::findNextSegOnPath(Segment *currentSeg) {
 
 void BranchMesh::completePath(Segment *lastSeg, const int sides, const std::vector<double> &preadjusts) {
 
-	MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::completePath() " << "\n";
+	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::completePath() " << "\n";
 
 	std::size_t lowerRingFirstVert = verts.size() - sides;
 	for (int i = 0; i < sides; ++i)
@@ -248,29 +249,30 @@ void BranchMesh::createDividerRing(const double halfDividerWidth, Segment *curre
 	int topRingFirstVert = verts.size() - currentOrderSides;
 	for (int s = 0; s < currentOrderSides; ++s) {
 
-		// first add the preadjust from the previous ring so that the vertex sits on the perpendicular plane at the beginning of nextSeg
+		// First add the preadjust from the previous ring so that the vertex sits on the perpendicular plane at the beginning of nextSeg
 		Point tempVertPos = verts[topRingFirstVert + s] + nextSeg->getVect().resized(preadjusts[s]);
-		// then using the start point of the nextSeg, shrink the vertex position inward according to the new radius
+
+		// Then using the start point of the nextSeg, shrink the vertex position inward according to the new radius
 		CVect vectorTowardsCenter = nextSeg->getStartPoint() - tempVertPos;
 		vectorTowardsCenter.resize(currentSeg->getRadius() - nextSeg->getRadius());
-		MStreamUtils::stdOutStream() << "radius difference: " << currentSeg->getRadius() - nextSeg->getRadius() << "\n";
-		// add vectorTowardsCenter to tempVertPos to shrink its position inward, then add nextSeg's vector at a length of halfDividerWidth
+
+		// Add vectorTowardsCenter to tempVertPos to shrink its position inward, then add nextSeg's vector at a length of halfDividerWidth
 		// to finalize the position of the new vertex
 		verts.push_back(tempVertPos + vectorTowardsCenter + nextSeg->getVect().resized(halfDividerWidth));
 
-		// now that we are done with the vertex in the previous ring, we can slide it down according to the divider width
+		// Now that we are done with the vertex in the previous ring, we can slide it down according to the divider width
 		verts[topRingFirstVert + s] -= currentSeg->getVect().resized(halfDividerWidth);
 	}
 
 	//MStreamUtils::stdOutStream() << "EXIT FUNCTION - BranchMesh::createDividerRing()" << "\n";
 }
 
-// adds faceConnects for the faces between the last and second-to-last rings of verts created 
-// pre: must have two rings for which faceconnects have not been created
+// Adds faceConnects for the faces between the last and second-to-last rings of verts created 
+// pre: Must have two rings for which faceconnects have not been created
 void BranchMesh::addNextFaceConnectsAndCounts(const int sides) {
 
-	// for each 4 sided face added we have to specify the indices of the verts that make up its 4 corners - these indices are the faceConnects
-	// for each face, they start on the lower left and move counter-clockwise
+	// For each 4 sided face added we have to specify the indices of the verts that make up its 4 corners - these indices are the faceConnects
+	// For each face, they start on the lower left and move counter-clockwise
 	int initialIndex = verts.size() - sides * 2;
 	if (sides > 2) {
 
@@ -304,13 +306,13 @@ void BranchMesh::addNextFaceConnectsAndCounts(const int sides) {
 	}
 }
 
-// pre: the cap is a single vertex and it is the last in the list for this mesh
+// The cap is a single vertex and it is the last in the list for this mesh
 void BranchMesh::addCapFaceConnectsAndCounts(const int sides) {
 
 	int initialIndex = verts.size() - sides - 1;
 	if (sides > 2) {
 
-		// first do (sides - 1) loops because the pattern changes for the last face in the ring
+		// First do (sides - 1) loops because the pattern changes for the last face in the ring
 		int nextVertIndex = initialIndex;
 		for (nextVertIndex; nextVertIndex < verts.size() - 2; ++nextVertIndex) {
 
@@ -319,7 +321,7 @@ void BranchMesh::addCapFaceConnectsAndCounts(const int sides) {
 			faceConnects.push_back(verts.size() - 1);
 		}
 
-		//The pattern for faceConnects is a bit different for the last face in every ring
+		// The pattern for faceConnects is a bit different for the last face in every ring
 		faceConnects.push_back(nextVertIndex);
 		faceConnects.push_back(initialIndex);
 		faceConnects.push_back(verts.size() - 1);

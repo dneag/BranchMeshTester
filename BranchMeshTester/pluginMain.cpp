@@ -7,8 +7,9 @@
 //
 
 /*
-edited from the Maya Plug-in Wizard 2.0 template
-defines methods called when loading and unloading the BranchMeshTester plugin
+	- edited from the Maya Plug-in Wizard 2.0 template
+	- defines methods called when loading and unloading the BranchMeshTester plugin
+	- establishes the command name 'makeBranchMeshes'
 */
 
 #include <maya/MFnPlugin.h>
