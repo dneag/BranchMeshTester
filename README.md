@@ -26,4 +26,6 @@ To run...
 
 If this does not work for you I apologize.  You can try to follow Autodesk's guide to installing plug-ins [&lt;here&gt;](https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2018/ENU/Maya-Customizing/files/GUID-FA51BD26-86F3-4F41-9486-2C3CF52B9E17-htm.html)
 
+For more info on usage, view the Demo file in this repository.
+
 Thank you for checking out my work!
