@@ -9,7 +9,7 @@ To run...
   - download the three files from this repository: BranchMeshTester.mll, BranchMeshTester_GUI.py, and Branch.py
   - place the files in the correct directories...for Windows users, I can summarize:
   
-    - both .py files go in C:\Users\13308\Documents\maya\scripts
+    - both .py files go in C:\Users\<Your User Name>\Documents\maya\scripts
     - the .mll file can be placed anywhere - then with Maya open, from the top bar go to Windows -> Settings/Preferences -> Plug-in Manager
     - within the plug-in manager window, click the browse button on the bottom left, navigate to the .mll file, then make sure the 'loaded' checkbox is checked for it
     - (a similar process should work for other operating systems. If it doesn't, see the link below)
