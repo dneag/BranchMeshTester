@@ -5,9 +5,11 @@
 #include "BMTMath.h"
 #include "Operators.h"
 
-BranchMesh::BranchMesh(Segment *firstSeg, const int sides) {
+BranchMesh::BranchMesh(Segment *firstSeg, const int currentOrderSides) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::BranchMesh() " << "\n";
+
+	sides = currentOrderSides;
 
 	initialRadius = firstSeg->getRadius();
 
@@ -46,11 +48,11 @@ BranchMesh::BranchMesh(Segment *firstSeg, const int sides) {
 	}
 }
 
-void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector<double> &preadjusts, std::queue<Segment*> &firstSegsOfBMeshes) {
+void BranchMesh::go(Segment *seg, const std::vector<double> &preadjusts, std::queue<Segment*> &firstSegsOfBMeshes) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::go()" << "\n";
 	
-	// First check for the beginnings of any new branch meshes
+	// Check for the beginnings of any new branch meshes
 	std::vector<Segment*> potentialFirstSegs = seg->getConnectedUpperSegs();
 	for (auto connectedSeg : potentialFirstSegs) {
 
@@ -59,13 +61,14 @@ void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector
 			firstSegsOfBMeshes.push(connectedSeg);
 	}
 
+	// Check if there is a segment ahead of this one
 	Segment *nextSegOnPath = findNextSegOnPath(seg);
 	if (!nextSegOnPath) {
 
 		// This should mean this is the last segment for this mesh
 		MStreamUtils::stdOutStream() << "last seg..." << "\n\n";
 
-		this->completePath(seg, currentOrderSides, preadjusts);
+		this->completePath(seg, preadjusts);
 
 		//MStreamUtils::stdOutStream() << "path completed.  verts: " << verts.size() << ", faceConnects: " << faceConnects.size() <<
 		//	", faceCounts: " << faceCounts.size() << "\n\n";
@@ -73,21 +76,24 @@ void BranchMesh::go(Segment *seg, const int currentOrderSides, const std::vector
 		return;
 	}
 
-	std::vector<double> nextPreadjusts = this->createNextRing(seg, nextSegOnPath, currentOrderSides, preadjusts);
-
-	this->addNextFaceConnectsAndCounts(currentOrderSides);
-
 	double halfDividerWidth = findDividerIfAny(seg->getRadius(), nextSegOnPath);
+
+	std::vector<Point> ringToAddTo = this->makeRingToAddTo(seg->getRadius() - nextSegOnPath->getRadius(), seg->getStartPoint(), halfDividerWidth);
+
+	std::vector<double> nextPreadjusts = this->createNextRing(seg, nextSegOnPath, preadjusts, halfDividerWidth, ringToAddTo);
+
+	this->addNextFaceConnectsAndCounts();
 
 	if (halfDividerWidth > 0.) {
 
-		this->createDividerRing(halfDividerWidth, seg, nextSegOnPath, currentOrderSides, nextPreadjusts);
-		this->addNextFaceConnectsAndCounts(currentOrderSides);
+		this->createDividerRing(halfDividerWidth, seg, nextSegOnPath, nextPreadjusts);
+		this->addNextFaceConnectsAndCounts();
+
 		// the preadjusts are applied to the divider ring, so we reset them to -halfDividerWidth. for the next go()
 		std::fill(nextPreadjusts.begin(), nextPreadjusts.end(), -halfDividerWidth);
 	}
 
-	this->go(nextSegOnPath, currentOrderSides, nextPreadjusts, firstSegsOfBMeshes);
+	this->go(nextSegOnPath, nextPreadjusts, firstSegsOfBMeshes);
 }
 
 Segment * BranchMesh::findNextSegOnPath(Segment *currentSeg) {
@@ -109,7 +115,7 @@ Segment * BranchMesh::findNextSegOnPath(Segment *currentSeg) {
 	return nullptr;
 }
 
-void BranchMesh::completePath(Segment *lastSeg, const int sides, const std::vector<double> &preadjusts) {
+void BranchMesh::completePath(Segment *lastSeg, const std::vector<double> &preadjusts) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::completePath() " << "\n";
 
@@ -120,96 +126,18 @@ void BranchMesh::completePath(Segment *lastSeg, const int sides, const std::vect
 		verts.push_back(verts[lowerRingFirstVert + i] + resizedVector);
 	}
 
-	this->addNextFaceConnectsAndCounts(sides);
+	this->addNextFaceConnectsAndCounts();
 
 	CVect vectorToLastVert = lastSeg->getVect().resized(lastSeg->getRadius());
 	Point capVert = lastSeg->getStartPoint() + lastSeg->getVect() + vectorToLastVert;
 	verts.push_back(capVert);
 
-	this->addCapFaceConnectsAndCounts(sides);
+	this->addCapFaceConnectsAndCounts();
 
 	//MStreamUtils::stdOutStream() << "EXIT FUNCTION - BranchMesh::completePath()" << "\n";
 }
 
-std::vector<double> BranchMesh::createNextRing(Segment *currentSeg, Segment *nextSeg, const int currentOrderSides, const std::vector<double> &preadjusts) {
-
-	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::createNextRing()" << "\n";
-
-	// We can create the next ring/segment on a mesh by simply adding the segment's vector to each of the vertices on the
-	// previous ring, each sum being the location of a new vertex on the next ring.  However, unless the angle between the two
-	// segments is 0, the size of the vector added to find these new vertices must be adjusted to account for the angle change.
-	// The magnitude of this size adjustment is called the pre-adjust.  The 'preadjusts' and 'newPreadjusts' lists store the pre-adjusts
-	// corresponding to each vertex in the ring.  The 'preadjusts' list in this method contains the pre-adjusts from the previous ring creation,
-	// and will be used to create this ring.  'newPreadjusts' will be sent along for the next ring creation.
-	std::vector<double> newPreadjusts;
-	const double angBetweenSegments = findAngBetween(currentSeg->getVect(), nextSeg->getVect());
-
-	//MStreamUtils::stdOutStream() << "angBetweenSegments: " << angBetweenSegments << "\n";
-
-	if (angBetweenSegments > .0001 || angBetweenSegments < -.0001) {
-
-		// even if the two segments have different radii, only use the current seg's radius for calculating the first ring
-		const double currentRadius = currentSeg->getRadius();
-		const double angBetweenOut90 = MM::PID2 - angBetweenSegments;
-		const double sinAngBetween = std::sin(angBetweenOut90);
-
-		const double largeOppSideLength = sinAngBetween * nextSeg->getVect().getMag(); // SOH
-		const Point nextSegEndPoint = nextSeg->getStartPoint() + nextSeg->getVect();
-		const CVect currentVectResized = currentSeg->getVect().resized(largeOppSideLength);
-		const Point rightAnglePoint = nextSegEndPoint - currentVectResized;
-		const Point currentSegEndPoint = currentSeg->getStartPoint() + currentSeg->getVect();
-		CVect rightAngleVector = rightAnglePoint - currentSegEndPoint;
-		rightAngleVector.resize(currentRadius);
-		const Point pointUnderAngle = currentSegEndPoint + rightAngleVector;
-		const Point pointBehindAngle = currentSegEndPoint - rightAngleVector;
-		rightAngleVector = pointBehindAngle - pointUnderAngle;
-
-		const double topTriangleHSide = sinAngBetween * currentRadius; //SOH
-		const double topTriangleVSide = std::cos(angBetweenOut90) * currentRadius; //CAH
-		const double bottomTriangleVSide = std::tan(angBetweenOut90) * (currentRadius - topTriangleHSide); //TOA
-		double maxAdjust = bottomTriangleVSide - topTriangleVSide;
-
-		if (std::fabs(maxAdjust) >= currentSeg->getVect().getMag())
-			MStreamUtils::stdOutStream() << "WARNING: angle between segments is too big.  Your mesh probably looks funny. " << "\n";
-
-		const int topRingFirstVert = verts.size() - currentOrderSides;
-		for (int s = 0; s < currentOrderSides; ++s) {
-
-			// preadjusts must be added to create a tentative Point. this point lies on the plane at the end of and perpendicular to the 
-			// current segment's vector. its position is needed to calculate the next adjustment
-			Point vertPosWithPreAdjust = verts[topRingFirstVert + s] + currentSeg->getVect().resized(currentSeg->getLength() + preadjusts[s]);
-			CVect vectorToPUA = vertPosWithPreAdjust - pointUnderAngle;
-			double vectorToPUAMag = vectorToPUA.getMag();
-			double adjust = maxAdjust;
-
-			if (vectorToPUAMag > 0.) {
-				double angBetween = findAngBetween(rightAngleVector, vectorToPUA);
-				double distAlongRightAngleVector = std::cos(angBetween) * vectorToPUAMag; //CAH
-				adjust = (1. - (distAlongRightAngleVector / currentRadius)) * maxAdjust;
-			}
-
-			// add the new adjustment then save it as a preadjust for the next ring
-			Point finalVertPos = vertPosWithPreAdjust + currentSeg->getVect().resized(adjust);
-			verts.push_back(finalVertPos);
-			newPreadjusts.push_back(adjust);
-		}
-	}
-	else {
-
-		const int topRingFirstVert = verts.size() - currentOrderSides;
-		for (int s = 0; s < currentOrderSides; ++s) {
-
-			verts.push_back(verts[topRingFirstVert + s] + currentSeg->getVect().resized(currentSeg->getLength() + preadjusts[s]));
-			newPreadjusts.push_back(0.);
-		}
-	}
-
-	//MStreamUtils::stdOutStream() << "EXIT FUNCTION - BranchMesh::createNextRing()" << "\n";
-
-	return newPreadjusts;
-}
-
-double BranchMesh::findDividerIfAny(const double currentSegRadius, Segment *nextSegOnPath) {
+double BranchMesh::findDividerIfAny(const double currentSegRadius, Segment *nextSegOnPath) const {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::findDividerIfAny()" << "\n";
 
@@ -243,13 +171,112 @@ double BranchMesh::findDividerIfAny(const double currentSegRadius, Segment *next
 	}
 }
 
-void BranchMesh::createDividerRing(const double halfDividerWidth, Segment *currentSeg, Segment *nextSeg,
-	const int currentOrderSides, const std::vector<double> &preadjusts) {
+std::vector<Point> BranchMesh::makeRingToAddTo(const double radiusDiff, const Point center, const double halfDividerWidth) const {
+
+	std::vector<Point> ringToAddTo;
+
+	if (halfDividerWidth > 0.) {
+
+		for (int i = verts.size() - sides; i < verts.size(); ++i) {
+
+			ringToAddTo.push_back(verts[i]);
+		}
+	}
+	else {
+
+		for (int i = verts.size() - sides; i < verts.size(); ++i) {
+
+			CVect vectToCenter = center - verts[i];
+			ringToAddTo.push_back(verts[i] + vectToCenter.resized(radiusDiff));
+		}
+	}
+
+	return ringToAddTo;
+}
+
+std::vector<double> BranchMesh::createNextRing(Segment *currentSeg, Segment *nextSeg, const std::vector<double> &preadjusts,
+											   const double halfDividerWidth, const std::vector<Point> &ringToAddTo) {
+
+	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::createNextRing()" << "\n";
+
+	// We can create the next ring/segment on a mesh by simply adding the segment's vector to each of the vertices on the
+	// previous ring, each sum being the location of a new vertex on the next ring.  However, unless the angle between the two
+	// segments is 0, the size of the vector added to find these new vertices must be adjusted to account for the angle change.
+	// The magnitude of this size adjustment is called the pre-adjust.  The 'preadjusts' and 'newPreadjusts' lists store the pre-adjusts
+	// corresponding to each vertex in the ring.  The 'preadjusts' list in this method contains the pre-adjusts from the previous ring creation,
+	// and will be used to create this ring.  'newPreadjusts' will be sent along for the next ring creation.
+	std::vector<double> newPreadjusts;
+	const double angBetweenSegments = findAngBetween(currentSeg->getVect(), nextSeg->getVect());
+
+	//MStreamUtils::stdOutStream() << "angBetweenSegments: " << angBetweenSegments << "\n";
+
+	if (angBetweenSegments > .0001 || angBetweenSegments < -.0001) {
+
+		const double radius = nextSeg->getRadius();
+		const double angBetweenOut90 = MM::PID2 - angBetweenSegments;
+		const double sinAngBetween = std::sin(angBetweenOut90);
+
+		const double largeOppSideLength = sinAngBetween * nextSeg->getVect().getMag(); // SOH
+		const Point nextSegEndPoint = nextSeg->getStartPoint() + nextSeg->getVect();
+		const CVect currentVectResized = currentSeg->getVect().resized(largeOppSideLength);
+		const Point rightAnglePoint = nextSegEndPoint - currentVectResized;
+		const Point currentSegEndPoint = currentSeg->getStartPoint() + currentSeg->getVect();
+		CVect rightAngleVector = rightAnglePoint - currentSegEndPoint;
+		rightAngleVector.resize(radius);
+		const Point pointUnderAngle = currentSegEndPoint + rightAngleVector;
+		const Point pointBehindAngle = currentSegEndPoint - rightAngleVector;
+		rightAngleVector = pointBehindAngle - pointUnderAngle;
+
+		const double topTriangleHSide = sinAngBetween * radius; //SOH
+		const double topTriangleVSide = std::cos(angBetweenOut90) * radius; //CAH
+		const double bottomTriangleVSide = std::tan(angBetweenOut90) * (radius - topTriangleHSide); //TOA
+		double maxAdjust = bottomTriangleVSide - topTriangleVSide;
+
+		if (std::fabs(maxAdjust) >= currentSeg->getVect().getMag())
+			MStreamUtils::stdOutStream() << "WARNING: angle between segments is too big.  Your mesh probably looks funny. " << "\n";
+
+		for (int s = 0; s < sides; ++s) {
+
+			// preadjusts must be added to create a tentative Point. this point lies on the plane at the end of and perpendicular to the 
+			// current segment's vector. its position is needed to calculate the next adjustment
+			Point vertPosWithPreAdjust = ringToAddTo[s] + currentSeg->getVect().resized(currentSeg->getLength() + preadjusts[s]);
+			CVect vectorToPUA = vertPosWithPreAdjust - pointUnderAngle;
+			double vectorToPUAMag = vectorToPUA.getMag();
+			double adjust = maxAdjust;
+
+			if (vectorToPUAMag > 0.) {
+
+				double angBetween = findAngBetween(rightAngleVector, vectorToPUA);
+				double distAlongRightAngleVector = std::cos(angBetween) * vectorToPUAMag; //CAH
+				adjust = (1. - (distAlongRightAngleVector / radius)) * maxAdjust;
+			}
+
+			// add the new adjustment then save it as a preadjust for the next ring
+			Point finalVertPos = vertPosWithPreAdjust + currentSeg->getVect().resized(adjust);
+			verts.push_back(finalVertPos);
+			newPreadjusts.push_back(adjust);
+		}
+	}
+	else {
+
+		for (int s = 0; s < sides; ++s) {
+
+			verts.push_back(ringToAddTo[s] + currentSeg->getVect().resized(currentSeg->getLength() + preadjusts[s]));
+			newPreadjusts.push_back(0.);
+		}
+	}
+
+	//MStreamUtils::stdOutStream() << "EXIT FUNCTION - BranchMesh::createNextRing()" << "\n";
+
+	return newPreadjusts;
+}
+
+void BranchMesh::createDividerRing(const double halfDividerWidth, Segment *currentSeg, Segment *nextSeg, const std::vector<double> &preadjusts) {
 
 	//MStreamUtils::stdOutStream() << "ENTER FUNCTION - BranchMesh::createDividerRing()" << "\n";
 
-	int topRingFirstVert = verts.size() - currentOrderSides;
-	for (int s = 0; s < currentOrderSides; ++s) {
+	int topRingFirstVert = verts.size() - sides;
+	for (int s = 0; s < sides; ++s) {
 
 		// First add the preadjust from the previous ring so that the vertex sits on the perpendicular plane at the beginning of nextSeg
 		Point tempVertPos = verts[topRingFirstVert + s] + nextSeg->getVect().resized(preadjusts[s]);
@@ -271,7 +298,7 @@ void BranchMesh::createDividerRing(const double halfDividerWidth, Segment *curre
 
 // Adds faceConnects for the faces between the last and second-to-last rings of verts created 
 // pre: Must have two rings for which faceconnects have not been created
-void BranchMesh::addNextFaceConnectsAndCounts(const int sides) {
+void BranchMesh::addNextFaceConnectsAndCounts() {
 
 	// For each 4 sided face added we have to specify the indices of the verts that make up its 4 corners - these indices are the faceConnects
 	// For each face, they start on the lower left and move counter-clockwise
@@ -309,7 +336,7 @@ void BranchMesh::addNextFaceConnectsAndCounts(const int sides) {
 }
 
 // The cap is a single vertex and it is the last in the list for this mesh
-void BranchMesh::addCapFaceConnectsAndCounts(const int sides) {
+void BranchMesh::addCapFaceConnectsAndCounts() {
 
 	int initialIndex = verts.size() - sides - 1;
 	if (sides > 2) {
@@ -425,5 +452,48 @@ void BranchMesh::calculateUVs()
 			indexDiffOfVertBelow = sides * (faceCounts[(i + 1) - sides]);
 			ring++;
 		}
+	}
+
+}
+
+void BranchMesh::reportInMaya() {
+
+	MStreamUtils::stdOutStream() << "\n" << verts.size() << " Verts:\n";
+
+	int vertsPerLine = 4;
+	int vertIndexCounter = 0;
+
+	for (auto v : verts) {
+
+		MStreamUtils::stdOutStream() << vertIndexCounter++ << ": " << v << ", ";
+
+		if (vertIndexCounter + 1 % vertsPerLine == 0)
+			MStreamUtils::stdOutStream() << "\n";
+	}
+	
+	MStreamUtils::stdOutStream() << "\n\n" << faceCounts.size() << " Face Counts:\n";
+
+	int faceCountsPerLine = 20;
+	int fcIndexCounter = 0;
+
+	for (auto fc : faceCounts) {
+
+		MStreamUtils::stdOutStream() << "[" << fcIndexCounter++ << "]" << ": " << fc << ", ";
+
+		if (fcIndexCounter + 1 % faceCountsPerLine == 0)
+			MStreamUtils::stdOutStream() << "\n";
+	}
+
+	MStreamUtils::stdOutStream() << "\n\n" << faceConnects.size() << " Face Connects:\n";
+
+	int faceConnectsPerLine = 20;
+	int fccIndexCounter = 0;
+
+	for (auto fcc : faceConnects) {
+
+		MStreamUtils::stdOutStream() << "[" << fccIndexCounter++ << "]" << ": " << fcc << ", ";
+
+		if (fccIndexCounter + 1 % faceConnectsPerLine == 0)
+			MStreamUtils::stdOutStream() << "\n";
 	}
 }

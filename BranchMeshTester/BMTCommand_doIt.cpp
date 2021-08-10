@@ -174,7 +174,7 @@ namespace {
 			BranchMesh *bMesh = new BranchMesh(firstSegsOfNewBMeshes.front(), orderSides);
 			treeMesh.push_back(bMesh);
 			std::vector<double> initialPreadjusts(orderSides, 0.);
-			bMesh->go(firstSegsOfNewBMeshes.front(), orderSides, initialPreadjusts, firstSegsOfNewBMeshes);
+			bMesh->go(firstSegsOfNewBMeshes.front(), initialPreadjusts, firstSegsOfNewBMeshes);
 			firstSegsOfNewBMeshes.pop();
 		}
 
@@ -211,6 +211,8 @@ namespace {
 
 			MFloatArray faU;
 			MFloatArray faV;
+
+			bMesh->reportInMaya();
 
 			bMesh->calculateUVs();
 

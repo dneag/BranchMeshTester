@@ -55,31 +55,37 @@ class BranchMesh
 public:
 
 	// Creates the object and its first ring of vertices
-	BranchMesh(Segment *firstseg, const int sides);
+	BranchMesh(Segment *firstseg, const int currentOrderSides);
 
-	// Finds the next segment on the path, returns null if there isn't one, indicating the end of the mesh
+	// Finds the next segment on the path
+	// Returns null if there isn't one, indicating the end of the mesh
 	Segment * findNextSegOnPath(Segment *currentSeg);
 
 	// Creates the last ring and adds the cap vertex
-	void completePath(Segment *lastSeg, const int sides, const std::vector<double> &preadjusts);
+	void completePath(Segment *lastSeg, const std::vector<double> &preadjusts);
 
 	// Returns the width of the divider, returns 0. if there is no divider
 	// pre: all segment radii are already calculated
-	double findDividerIfAny(const double currentSegRadius, Segment *nextSegOnPath);
+	double findDividerIfAny(const double currentSegRadius, Segment *nextSegOnPath) const;
+
+	// Makes a ring of points (not vertices added to the mesh) that will have vectors added to them to create the next ring
+	// This is used when the next segment has a different radius than the last, but it is not a big enough difference to warrant creating a divider
+	// Typically this ring is a shrunken version of the top ring of vertices
+	std::vector<Point> BranchMesh::makeRingToAddTo(const double radiusDiff, const Point center, const double halfDividerWidth) const;
 
 	// Creates the next ring of vertices
-	std::vector<double> createNextRing(Segment *currentSeg, Segment *nextSeg, const int currentOrderSides, const std::vector<double> &preadjusts);
+	std::vector<double> createNextRing(Segment *currentSeg, Segment *nextSeg, const std::vector<double> &preadjusts,
+		const double halfDividerWidth, const std::vector<Point> &ringToAddTo);
 
 	// Creates and finalizes the positions of the ring of vertices between the top rings of the current seg and next seg
-	void createDividerRing(const double halfDividerWidth, Segment *currentSeg, Segment *nextSeg,
-		const int currentOrderSides, const std::vector<double> &preadjusts);
+	void createDividerRing(const double halfDividerWidth, Segment *currentSeg, Segment *nextSeg, const std::vector<double> &preadjusts);
 
 	// Traverses all segments until there is no seg above the current seg with the same meristem as the current seg
 	// At each segment we check for connected segs with different meristems, adding those segs as new firstSegsOfBMeshes
 	// At each segment we set the positions for the ring of vertices at its end, and if there is a divider above it, we set that ring too
 	// For each ring of vertices added, a corresponding set of faceConnects and faceCounts is also added
 	// When the last segment of the mesh is found, a single cap vertex is added along with a corresponding set of faceConnects and faceCounts
-	void go(Segment *seg, const int currentOrderSides, const std::vector<double> &preadjusts, std::queue<Segment*> &firstSegsOfBMeshes);
+	void go(Segment *seg, const std::vector<double> &preadjusts, std::queue<Segment*> &firstSegsOfBMeshes);
 
 	int numVerts() { return verts.size(); }
 	Point getVert(int index) { return verts[index]; }
@@ -95,11 +101,13 @@ public:
 	int numFaceConnects() { return faceConnects.size(); }
 	int getFaceConnect(int index) { return faceConnects[index]; }
 
-	void addNextFaceConnectsAndCounts(const int sides);
+	void addNextFaceConnectsAndCounts();
 
-	void addCapFaceConnectsAndCounts(const int sides);
+	void addCapFaceConnectsAndCounts();
 
 	void calculateUVs();
+
+	void reportInMaya();
 };
 
 #endif /* BranchMesh_h */

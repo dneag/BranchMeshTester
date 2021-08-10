@@ -38,4 +38,6 @@ CVect operator/(CVect const &lhs, const double divisor);
 
 std::ostream& operator<<(std::ostream& os, const CVect &v);
 
+std::ostream& operator<<(std::ostream& os, const Point &p);
+
 #endif /* Operators_h */
