@@ -22,9 +22,9 @@ namespace MM {
 	const double cosPID2 = std::cos(PID2);
 }
 
-// polar angles.  pol is for polar, azi is for azimuth
-// within Maya world space, a pol of 0 radians points down the positive x-axis.  As it increases it rotates clockwise when viewing from above.
-//    An azi of 0. points up the positive y-axis.  As it increases it rotates towards its polar counterpart
+// Spherical coordinate angles.  pol is for polar, azi is for azimuth
+// Within Maya world space, a pol of 0 radians points down the positive x-axis.  As it increases it rotates clockwise when viewing from above.
+// An azi of 0. points up the positive y-axis.  As it increases it rotates towards its polar counterpart
 struct SphAngles
 {
 	double pol = 0.;

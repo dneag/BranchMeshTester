@@ -183,17 +183,12 @@ namespace {
 
 	void sendMeshesToMaya(std::vector<BranchMesh*> treeMesh) {
 
-		// MFnDagNode's create() will create a Maya group that we can assign each BranchMesh to
-		std::string groupName_str = "BranchMesh Tree";
-		char groupName_c[18];
-		strcpy(groupName_c, groupName_str.c_str());
-		MString groupName = groupName_c;
-		MFnDagNode dagFn;
-		MObject grpTransform = dagFn.create("transform", groupName);
-
+		int meshNumber = 0;
 		// deliver the relevant data in each bMesh to the MFnMesh create() method
 		for (auto bMesh : treeMesh)
 		{
+			++meshNumber;
+
 			MFloatPointArray fpaVertices;
 			for (int i = 0; i < bMesh->numVerts(); i++)
 			{
@@ -233,7 +228,18 @@ namespace {
 			MObject newTransform = fnMesh.create(bMesh->numVerts(), bMesh->numFaces(), fpaVertices,
 				iaFaceCounts, iaFaceConnects, faU, faV);
 			fnMesh.assignUVs(iaUVCounts, iaUVIDs);
-			dagFn.addChild(newTransform);
+
+			// Give our object a name
+
+			MFnDependencyNode nodeFn;
+			nodeFn.setObject(newTransform);
+
+			// Create an MString and pass it to a dependency node's setName()
+			std::string groupName_str = "BranchMesh_" + std::to_string(meshNumber);
+			char groupName_c[18];
+			strcpy(groupName_c, groupName_str.c_str());
+			MString groupName = groupName_c;
+			nodeFn.setName(groupName);
 		}
 	}
 }
