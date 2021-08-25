@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
+#include <memory>
 
 #include <maya/MStreamUtils.h>
 #include <maya/MArgDatabase.h>
@@ -28,10 +29,10 @@
 namespace {
 
 	// Takes the information in argData and parses it to create Segment objects
-	Segment * createSegments(MStatus &status, const MArgDatabase &argData);
+	Segment * createSegments(MStatus &status, const MArgDatabase &argData, std::vector<Segment*> &allSegments, std::vector<Meristem*> &allMeristems);
 
 	// Takes a linked list, starting at rootSeg, and converts it into a list of BranchMeshes
-	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg);
+	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg, std::vector<BranchMesh*> &allBMeshes);
 
 	// Delivers the data from each BranchMesh to the MFnMesh create() method
 	void sendMeshesToMaya(std::vector<BranchMesh*> treeMesh);
@@ -47,18 +48,31 @@ MStatus BMTCommand::doIt(const MArgList &argList) {
 	MArgDatabase argData(syntax(), argList, &status);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 
-	Segment *rootSeg = createSegments(status, argData);
+	std::vector<Segment*> allSegments;
+	std::vector<Meristem*> allMeristems;
+	std::vector<BranchMesh*> allBMeshes;
 
-	std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg);
+	Segment *rootSeg = createSegments(status, argData, allSegments, allMeristems);
+
+	std::vector<BranchMesh*> treeMesh = makeManyBMesh(rootSeg, allBMeshes);
 
 	sendMeshesToMaya(treeMesh);
+	
+	for (int i = 0; i < allSegments.size(); ++i)
+		delete allSegments[i];
+
+	for (int i = 0; i < allMeristems.size(); ++i)
+		delete allMeristems[i];
+
+	for (int i = 0; i < allBMeshes.size(); ++i)
+		delete allBMeshes[i];
 
 	return MS::kSuccess;
 }
 
 namespace {
 
-	Segment * createSegments(MStatus &status, const MArgDatabase &argData) {
+	Segment * createSegments(MStatus &status, const MArgDatabase &argData, std::vector<Segment*> &allSegments, std::vector<Meristem*> &allMeristems) {
 
 		uint totalBranches = argData.numberOfFlagUses("-spb");
 		std::vector<int> segmentsPerBranch;
@@ -108,8 +122,11 @@ namespace {
 
 		// Make the first segment separately to establish its startPoint and the first meristem
 		CVect rootSegVect = worldSpace.makeVector(pols[0], azis[0], dists[0]);
+
 		Meristem *rootMeri = new Meristem(.01, 8);
+		allMeristems.push_back(rootMeri);
 		Segment *rootSeg = new Segment(rootSegVect, { 0.,0.,0. }, rads[0] + rootMeri->skinThickness, rootMeri);
+		allSegments.push_back(rootSeg);
 		Segment *previousSeg = rootSeg;
 		
 		std::vector<Segment*> allNewSegs;
@@ -120,6 +137,7 @@ namespace {
 			CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
 			Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
 			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s] + rootMeri->skinThickness, rootSeg->getMeri());
+			allSegments.push_back(newSeg);
 			previousSeg->addSegAbove(newSeg);
 			allNewSegs.push_back(newSeg);
 			previousSeg = newSeg;
@@ -138,7 +156,9 @@ namespace {
 			Point newSegStartPoint = allNewSegs[iop]->getStartPoint() + allNewSegs[iop]->getVect().resized(offsets[iop]);
 			CVect newSegVect = worldSpace.makeVector(pols[branchFirstSegIndex], azis[branchFirstSegIndex], dists[branchFirstSegIndex]);
 			Meristem *branchMeri = new Meristem(.01, 8);
+			allMeristems.push_back(branchMeri);
 			Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[branchFirstSegIndex] + branchMeri->skinThickness, branchMeri);
+			allSegments.push_back(newSeg);
 			allNewSegs[iop]->addLateralSeg(newSeg);
 			allNewSegs.push_back(newSeg);
 			previousSeg = newSeg;
@@ -148,6 +168,7 @@ namespace {
 				CVect newSegVect = worldSpace.makeVector(pols[s], azis[s], dists[s]);
 				Point newSegStartPoint = previousSeg->getStartPoint() + previousSeg->getVect();
 				Segment *newSeg = new Segment(newSegVect, newSegStartPoint, rads[s] + branchMeri->skinThickness, branchMeri);
+				allSegments.push_back(newSeg);
 				previousSeg->addSegAbove(newSeg);
 				allNewSegs.push_back(newSeg);
 				previousSeg = newSeg;
@@ -159,7 +180,7 @@ namespace {
 		return rootSeg;
 	}
 
-	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg) {
+	std::vector<BranchMesh*> makeManyBMesh(Segment *rootSeg, std::vector<BranchMesh*> &allBMeshes) {
 
 		std::vector<BranchMesh*> treeMesh;
 
@@ -172,6 +193,7 @@ namespace {
 
 			const int orderSides = firstSegsOfNewBMeshes.front()->getMeri()->sides;
 			BranchMesh *bMesh = new BranchMesh(firstSegsOfNewBMeshes.front(), orderSides);
+			allBMeshes.push_back(bMesh);
 			treeMesh.push_back(bMesh);
 			std::vector<double> initialPreadjusts(orderSides, 0.);
 			bMesh->go(firstSegsOfNewBMeshes.front(), initialPreadjusts, firstSegsOfNewBMeshes);
@@ -236,7 +258,7 @@ namespace {
 
 			// Create an MString and pass it to a dependency node's setName()
 			std::string groupName_str = "BranchMesh_" + std::to_string(meshNumber);
-			char groupName_c[18];
+			char groupName_c[32];
 			strcpy(groupName_c, groupName_str.c_str());
 			MString groupName = groupName_c;
 			nodeFn.setName(groupName);
