@@ -1,6 +1,6 @@
 # BranchMeshTester
 
-This program is a plug-in for Autodesk Maya.  I created it mainly to have something to show potential employers.  The code in the BMTCommand files (BMTCommand.h, BMTCommand_newSyntax.cpp, and BMTCommand_doIt.cpp) and in the Python files is written exclusively for this program, the rest largely is imported from a separate Maya plug-in that I began writing many years ago (before I knew much about programming) to generate models of plants and trees.  This program functions as a test program for the BranchMesh class, hence the name.  The purpose of the BranchMesh class is to take input in the form of a linked list of Segments, and convert it into data that can be passed to the create() method of the Maya API's MFnMesh class.
+This program is a plug-in for Autodesk Maya that acts as a tester for a class in a larger plug-in I made to generate models of plants.  I created this one to have something more to show potential employers, and because the larger one is being overhauled.  The code in the BMTCommand files (BMTCommand.h, BMTCommand_newSyntax.cpp, and BMTCommand_doIt.cpp) and in the Python files is written exclusively for this program, the rest is mostly imported from the primary plug-in.  The class being tested is called BranchMesh.  Its purpose is to take input in the form of a linked list of Segments, and convert it into data that can be passed to the create() method of the Maya API's MFnMesh class which, in turn, creates the polygonal mesh in Maya.
 
 To run...
 
